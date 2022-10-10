@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    env_file: .env
+    container_name: api
+    restart: unless-stopped
+    volumes:
+      - ./src:/usr/app/src
+      - ./node_modules:/usr/app/node_modules
+      - ./package.json:/usr/app/package.json
+    command: ['yarn', 'dev']
+    ports:
+      - '${PORT}:${PORT}'
+      - '9229:9229'

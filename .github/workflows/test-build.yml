@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches-ignore: [main, staging]
+  pull_request:
+    branches-ignore: [main, staging]
+
+  workflow_dispatch:
+
+jobs:
+  ci-workflow:
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['16.16.0']
+        os: [ubuntu-22.04]
+
+    name: Node ${{matrix.node-version}}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: yarn install
+      - run: yarn build

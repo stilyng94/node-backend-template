@@ -1,0 +1,24 @@
+FROM node:lts-bullseye-slim@sha256:d93fb5c25db163dc795d40eabf66251a2daf6a2c6a2d21cc29930e754aef4c2c
+
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+
+WORKDIR /usr/app
+
+COPY package.json ./
+COPY yarn.lock ./
+
+RUN npm set-script prepare ""
+
+RUN yarn install
+
+COPY . .
+
+EXPOSE ${PORT}
+EXPOSE 9229
+
+RUN chown -R node /usr/app
+
+USER node
+
+CMD ["yarn", "dev"]

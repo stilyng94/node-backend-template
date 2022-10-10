@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    container_name: api
+    healthcheck:
+      test: ['CMD', 'curl', '--fail', 'http://api:80/health-check']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    command: ['yarn', 'start']
+    ports:
+      - '5001:80'

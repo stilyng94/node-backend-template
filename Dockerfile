@@ -17,6 +17,8 @@ RUN yarn build
 #----- Staging
 FROM node:lts-bullseye-slim@sha256:d93fb5c25db163dc795d40eabf66251a2daf6a2c6a2d21cc29930e754aef4c2c as stager
 
+ENV NODE_ENV production
+
 WORKDIR /usr/app
 
 COPY --from=builder /usr/app/package.json ./

@@ -16,7 +16,6 @@ server.on('error', (error) => {
 		case 'EACCES':
 			debug(`${port} requires elevated privileges`);
 			logger.error(error);
-			process.exit(1);
 		// eslint-disable-next-line no-fallthrough
 		case 'EADDRINUSE':
 			debug(`${port} is already in use`);

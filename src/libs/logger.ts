@@ -1,20 +1,18 @@
 import pino, { Logger } from 'pino';
+import { createWriteStream } from 'pino-sentry';
+
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 function prodLogger(): Logger {
-	return pino({
-		transport: {
-			target: 'pino-sentry-transport',
-			options: {
-				sentry: {
-					dsn: process.env.SENTRY_DSN,
-				},
-				withLogRecord: true,
-				tags: ['id'],
-				context: ['hostname'],
-				minLevel: 40,
-			},
-		},
+	const stream = createWriteStream({
+		dsn: process.env.SENTRY_DSN,
+		serverName: process.env.APP_NAME ?? 'API',
+		level: 'warning',
 	});
+
+	return pino({}, stream);
 }
 
 function devLogger(): Logger {
@@ -25,14 +23,16 @@ function devLogger(): Logger {
 			options: {
 				colorize: true,
 				destination: 2,
-				sync: process.env.NODE_ENV === 'testing',
+				sync: process.env.SENTRY_ENVIRONMENT === 'testing',
 			},
 		},
 	});
 }
 
 function logger(): Logger {
-	return ['production', 'staging'].includes(process.env.NODE_ENV ?? '')
+	return ['production', 'staging'].includes(
+		process.env.SENTRY_ENVIRONMENT ?? ''
+	)
 		? prodLogger()
 		: devLogger();
 }

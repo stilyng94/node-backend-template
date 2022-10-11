@@ -13,5 +13,3 @@ describe('Testing sending mail with Ethereal Mail Service', () => {
 		expect(result).toHaveProperty('messageId');
 	});
 });
-
-

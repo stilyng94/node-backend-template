@@ -1,7 +1,5 @@
 import { Attachment } from 'nodemailer/lib/mailer';
 
-export type TransmissionResult = 'success' | 'failure' | 'bounced';
-
 /**
  * @description Email input
  */
@@ -14,9 +12,4 @@ export interface IEMailInput {
 	text?: string;
 	subject: string;
 	attachments?: Attachment[];
-}
-
-export interface IEMailResult {
-	message?: string;
-	result: TransmissionResult;
 }

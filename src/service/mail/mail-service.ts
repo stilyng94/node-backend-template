@@ -28,8 +28,10 @@ abstract class MailService {
 		}
 	}
 
-	protected verifyTransporter(transporter: Transporter<MailResults>): boolean {
-		let result: boolean = true;
+	protected static verifyTransporter(
+		transporter: Transporter<MailResults>
+	): boolean {
+		let result = true;
 		transporter.verify((err) => {
 			if (err) {
 				logger.error(err);
@@ -42,7 +44,7 @@ abstract class MailService {
 	public async sendMail(mailInput: IEMailInput): Promise<MailResults | null> {
 		try {
 			const transporter = this.createTransporter();
-			const isReady = this.verifyTransporter(transporter);
+			const isReady = MailService.verifyTransporter(transporter);
 			if (!isReady) {
 				return null;
 			}

@@ -1,14 +1,15 @@
 import dotenv from 'dotenv';
-import Debug from 'debug';
-
-const debug = Debug('api:setup-test');
+import logger from '../libs/logger';
+import redisClient from '../libs/redis-client';
 
 beforeAll(async () => {
 	dotenv.config();
-	process.env.NODE_ENV = 'testing';
-	debug('Testing setting up .....');
+
+	await redisClient.connect();
+	logger.info('Testing setting up .....');
 });
 
-afterAll(() => {
-	debug('Testing done .....');
+afterAll(async () => {
+	await redisClient.quit();
+	logger.info('Testing done .....');
 });

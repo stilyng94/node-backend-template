@@ -1,32 +1,36 @@
-import pino, { Logger } from 'pino';
+import pino, { Logger, LoggerOptions } from 'pino';
 import { createWriteStream } from 'pino-sentry';
 
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-function prodLogger(): Logger {
-	const stream = createWriteStream({
-		dsn: process.env.SENTRY_DSN,
-		serverName: process.env.APP_NAME ?? 'API',
-		level: 'warning',
-	});
+export const pinoSentryStream = createWriteStream({
+	dsn: process.env.SENTRY_DSN,
+	serverName: process.env.APP_NAME ?? 'API',
+	level: 'warning',
+});
 
-	return pino({}, stream);
+export const pinoConsoleTransportConfig: LoggerOptions = {
+	timestamp: true,
+	transport:
+		process.env.NODE_ENV !== 'test'
+			? {
+					target: 'pino-pretty',
+					options: {
+						colorize: true,
+						destination: 2,
+					},
+			  }
+			: undefined,
+};
+
+function prodLogger(): Logger {
+	return pino({}, pinoSentryStream);
 }
 
 function devLogger(): Logger {
-	return pino({
-		timestamp: true,
-		transport: {
-			target: 'pino-pretty',
-			options: {
-				colorize: true,
-				destination: 2,
-				sync: process.env.SENTRY_ENVIRONMENT === 'testing',
-			},
-		},
-	});
+	return pino(pinoConsoleTransportConfig);
 }
 
 function logger(): Logger {

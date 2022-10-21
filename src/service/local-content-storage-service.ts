@@ -23,9 +23,9 @@ function streamMediaContent(filePath: string) {
  *@description: generate url for locally stored media
  */
 function generateMediaUrl(req: Request) {
-	const media = req.file!;
+	const media = req.file;
 	const url = `${req.protocol}://${req.get('host')}`;
-	return `${url}/uploads/${media.filename}`;
+	return `${url}/uploads/${media?.filename}`;
 }
 
 async function deleteMediaContent(filePaths: Array<string>) {

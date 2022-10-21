@@ -12,7 +12,6 @@ services:
       - ./src:/usr/app/src
       - ./node_modules:/usr/app/node_modules
       - ./package.json:/usr/app/package.json
-    command: ['yarn', 'dev']
     ports:
       - '${PORT}:${PORT}'
       - '9229:9229'
@@ -28,3 +27,18 @@ services:
       - '7379:6379'
     volumes:
       - './runtime/bitnami/redis/data:/bitnami/redis/data'
+
+  db:
+    image: postgres:14-alpine
+    env_file: .env
+    container_name: db
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - '6432:5432'
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+
+volumes:
+  pgdata:

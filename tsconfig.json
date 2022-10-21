@@ -9,7 +9,7 @@
 		"esModuleInterop": true,
 		"rootDir": "src",
 		"outDir": "dist",
-		"lib": ["es2021"],
+		"lib": ["ESNext"],
 		"allowJs": true,
 		"checkJs": false,
 		"resolveJsonModule": true,

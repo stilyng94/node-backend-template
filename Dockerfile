@@ -2,16 +2,19 @@ FROM node:lts-bullseye-slim@sha256:d93fb5c25db163dc795d40eabf66251a2daf6a2c6a2d2
 
 WORKDIR /usr/app
 
+ENV NODE_ENV production
 
 COPY package.json ./
 COPY yarn.lock ./
 
 COPY tsconfig.json ./
-COPY . .
 
 RUN npm set-script prepare ""
 
 RUN yarn install
+
+COPY . .
+
 RUN yarn build
 
 #----- Staging
@@ -28,7 +31,8 @@ RUN yarn install --prod
 
 #----- Production
 FROM node:lts-bullseye-slim@sha256:d93fb5c25db163dc795d40eabf66251a2daf6a2c6a2d21cc29930e754aef4c2c as prod
-RUN apt-get update && apt-get install -y curl
+
+RUN apt-get update && apt-get install -y curl && apt-get install -y dumb-init
 
 WORKDIR /usr/app
 
@@ -46,8 +50,8 @@ RUN yarn global add pm2
 
 RUN chown -R node /usr/app
 
-EXPOSE 80
+EXPOSE ${PORT}
 
 USER node
 
-CMD ["yarn", "start"]
+CMD ["dumb-init","yarn", "start"]

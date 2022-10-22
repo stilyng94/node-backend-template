@@ -42,6 +42,7 @@ afterAll(async () => {
 	logger.info('Testing done .....');
 	// eslint-disable-next-line no-promise-executor-return
 	await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
+	process.exit(0);
 });
 
 const testLogin = async () => {

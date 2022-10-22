@@ -9,20 +9,23 @@
 		"build": "rm -rf ./dist && tsc",
 		"lint": "prettier --write --ignore-unknown . && eslint --fix --ext src/*.{js,ts}",
 		"start": "pm2-runtime ecosystem.config.js --json --only api",
-		"dev": "set TS_NODE_FILES=true && nodemon -L ./src/index.ts",
+		"dev": "nodemon -L ./src/index.ts",
 		"prepare": "husky install",
 		"test": "jest --detectOpenHandles --no-cache -i",
 		"prototype": "prisma db push --accept-data-loss",
 		"studio": "prisma studio",
 		"generate": "prisma generate",
 		"schema:format": "prisma format && yarn generate",
-		"reset:db": "prisma migrate reset",
+		"reset:db": "prisma migrate reset --skip-seed",
 		"migrate:deploy": "prisma migrate deploy",
-		"migrate:dev": "prisma migrate dev"
+		"migrate:dev": "prisma migrate dev --skip-seed",
+		"seed": "yarn prisma db seed",
+		"seed:dev": "ts-node ./src/seed/seed.ts"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^17.1.2",
 		"@commitlint/config-conventional": "^17.1.0",
+		"@tsconfig/recommended": "^1.0.1",
 		"@types/connect-redis": "^0.0.18",
 		"@types/cors": "^2.8.12",
 		"@types/express": "^4.17.14",
@@ -69,13 +72,13 @@
 		"express-validator": "^6.14.2",
 		"helmet": "^6.0.0",
 		"hpp": "^0.2.3",
+		"ioredis": "^5.2.3",
 		"multer": "^1.4.5-lts.1",
 		"nodemailer": "^6.8.0",
 		"pino": "^8.6.1",
 		"pino-http": "^8.2.1",
 		"pino-sentry": "^0.13.0",
 		"rate-limiter-flexible": "^2.3.12",
-		"redis": "^4.3.1",
 		"ua-parser-js": "^1.0.32"
 	},
 	"engines": {
@@ -86,5 +89,8 @@
 		"src/*.{js,ts}": [
 			"yarn lint"
 		]
+	},
+	"prisma": {
+		"seed": "node ./dist/seed/seed.js"
 	}
 }

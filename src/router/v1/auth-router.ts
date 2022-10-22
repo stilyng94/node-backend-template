@@ -19,4 +19,6 @@ authRouter.post(
 	rateLimiterMiddleware.userNameIpLimiterMiddleware,
 	authController.login
 );
+
+authRouter.post('/logout', authController.logout);
 export default authRouter;

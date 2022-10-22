@@ -16,6 +16,11 @@
 		"forceConsistentCasingInFileNames": true
 	},
 	"include": ["src/**/*"],
+	"extends": "@tsconfig/recommended/tsconfig.json",
 	"exclude": ["node_modules"],
+	"ts-node": {
+		"transpileOnly": true,
+		"files": true
+	},
 	"typeRoots": ["./src/types", "./node_modules/@types"]
 }

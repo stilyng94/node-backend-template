@@ -1,15 +1,16 @@
-import { createClient } from 'redis';
+import Redis from 'ioredis';
 import dotenv from 'dotenv';
 import logger from './logger';
 
 dotenv.config();
 
-const redisClient = createClient({
-	url: process.env.REDIS_URL,
-	disableOfflineQueue: true,
-	legacyMode: ['test', 'testing', 'development'].includes(
-		process.env.NODE_ENV ?? ''
-	),
+const redisClient = new Redis({
+	host: process.env.REDIS_HOST,
+	port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
+	lazyConnect: true,
+	password: process.env.REDIS_PASSWORD,
+	username: process.env.REDIS_USERNAME,
+	enableOfflineQueue: false,
 });
 
 redisClient.on('connect', () => logger.info({}, 'redis client connected'));

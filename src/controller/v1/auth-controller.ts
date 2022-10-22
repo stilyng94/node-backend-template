@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import BadRequestError from '../../errors/bad-request-error';
 import NotAuthorizedError from '../../errors/not-authorized-error';
 import authHelpers from '../../helpers/auth-helpers';
 import logger from '../../libs/logger';
@@ -47,6 +48,14 @@ async function login(req: Request, res: Response, next: NextFunction) {
 	}
 }
 
+async function logout(req: Request, res: Response, next: NextFunction) {
+	try {
+		return req.session.destroy(() => res.status(200).json({ success: true }));
+	} catch (error) {
+		return next();
+	}
+}
+
 function changePassword(req: Request, res: Response, next: NextFunction) {
 	try {
 		// User is authenticated
@@ -91,6 +100,7 @@ export default {
 	login,
 	beginPasswordRecovery,
 	passwordRecovery,
+	logout,
 };
 
 // TODO: Require Re-authentication for Sensitive Features

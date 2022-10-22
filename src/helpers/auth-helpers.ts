@@ -50,16 +50,20 @@ const hashPassword = async (password: string) => {
 	return hashedPassword;
 };
 
-const verifyPassword = async (password: string, hashedPassword: string) => {
-	const [key, salt] = hashedPassword.split('.');
-	const keyBuffer = Buffer.from(key, 'hex');
+const verifyPassword = async (password: string, hashedPassword = '') => {
+	try {
+		const [key, salt] = hashedPassword.split('.');
+		const keyBuffer = Buffer.from(key, 'hex');
 
-	const derivedKey = (await cryptoUtils.asyncScrypt(
-		password,
-		salt,
-		64
-	)) as Buffer;
-	return crypto.timingSafeEqual(keyBuffer, derivedKey);
+		const derivedKey = (await cryptoUtils.asyncScrypt(
+			password,
+			salt,
+			64
+		)) as Buffer;
+		return crypto.timingSafeEqual(keyBuffer, derivedKey);
+	} catch (_) {
+		return false;
+	}
 };
 
 const createUser = async (email: string, password: string) => {
@@ -70,6 +74,21 @@ const createUser = async (email: string, password: string) => {
 	return user;
 };
 
+const loginUser = async (email: string, password: string) => {
+	const user = await dbClient.user.findUnique({ where: { email } });
+	const verified = await verifyPassword(password, user?.password);
+
+	if (!verified) {
+		return {
+			error: true,
+			user: null,
+			errorMessage:
+				'Invalid login credentials. Remember that password is case-sensitive. Please try again',
+		};
+	}
+	return { error: false, errorMessage: undefined, user };
+};
+
 export default {
 	sendNewAccountMail,
 	hashPassword,
@@ -77,4 +96,5 @@ export default {
 	generateResetPasswordUrl,
 	decodeResetPassword,
 	verifyPassword,
+	loginUser,
 };

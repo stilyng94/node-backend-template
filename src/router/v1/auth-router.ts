@@ -14,4 +14,9 @@ authRouter.post(
 	authController.newAccount
 );
 
+authRouter.post(
+	'/login',
+	rateLimiterMiddleware.userNameIpLimiterMiddleware,
+	authController.login
+);
 export default authRouter;

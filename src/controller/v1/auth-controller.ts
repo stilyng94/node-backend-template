@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
+import NotAuthorizedError from '../../errors/not-authorized-error';
 import authHelpers from '../../helpers/auth-helpers';
-import dbClient from '../../libs/db-client';
 import logger from '../../libs/logger';
+import routeRateLimiter from '../../libs/rate-limit';
 
 async function newAccount(req: Request, res: Response) {
 	try {
@@ -25,16 +26,22 @@ async function newAccount(req: Request, res: Response) {
 
 async function login(req: Request, res: Response, next: NextFunction) {
 	try {
-		// If error, 'Login failed; Invalid user ID or password'
-		// Consume 1 point from limiters on wrong attempt and block if limits reached
-		// Reset on successful authorization
+		const resUsernameAndIP = await routeRateLimiter.get(req.userNameIpKey!);
 
-		logger.info(req.userNameIpKey, 'userNameIpKey');
-		const userCount = await dbClient.user.count();
-		logger.info(userCount, 'user count');
-		logger.info(req.deviceInfo, 'device Information');
+		const { password, email } = req.body;
+		const loginResult = await authHelpers.loginUser(email, password);
 
-		return res.sendStatus(200);
+		if (loginResult.error) {
+			await routeRateLimiter.consume(req.userNameIpKey!);
+			throw new NotAuthorizedError(loginResult.errorMessage);
+		}
+
+		if (resUsernameAndIP !== null && resUsernameAndIP.consumedPoints > 0) {
+			await routeRateLimiter.delete(req.userNameIpKey!);
+		}
+		req.session.isAuthenticated = true;
+		req.session.userId = loginResult.user?.id;
+		return res.status(200).json({ success: true });
 	} catch (error) {
 		return next(error);
 	}

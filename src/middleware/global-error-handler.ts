@@ -12,6 +12,7 @@ const globalErrorHandler = (
 	if (error instanceof CustomError) {
 		return res.status(error.statusCode).json({
 			errors: error.serializeErrors(),
+			success: false,
 		});
 	}
 
@@ -20,7 +21,7 @@ const globalErrorHandler = (
 	logger.error(error);
 	return res
 		.status(500)
-		.send({ errors: [{ message: 'unknown error occurred' }] });
+		.send({ errors: [{ message: 'unknown error occurred' }], success: false });
 };
 
 export default globalErrorHandler;

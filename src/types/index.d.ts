@@ -6,5 +6,7 @@ declare module 'express-session' {
 	interface SessionData {
 		views: number;
 		deviceInfoHash: string;
+		isAuthenticated: boolean;
+		userId: string;
 	}
 }

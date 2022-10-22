@@ -44,4 +44,15 @@ afterAll(async () => {
 	await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
 });
 
-export default { testServer };
+const testLogin = async () => {
+	const [email, password] = ['test@test.com', 'password'];
+
+	const response = await testServer
+		.post('/api/v1/auth/login')
+		.send({ email, password });
+
+	const cookie = response.get('Set-Cookie');
+	return cookie;
+};
+
+export default { testServer, testLogin };

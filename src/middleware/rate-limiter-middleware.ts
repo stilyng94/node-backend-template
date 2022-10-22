@@ -25,7 +25,6 @@ const userNameIpLimiterMiddleware = async (
 			.send({ success: false, message: 'Too Many Requests' });
 	}
 
-	await routeRateLimiter.consume(userNameIpKey);
 	req.userNameIpKey = userNameIpKey;
 
 	return next();

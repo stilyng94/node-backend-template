@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import BadRequestError from '../../errors/bad-request-error';
 import NotAuthorizedError from '../../errors/not-authorized-error';
 import authHelpers from '../../helpers/auth-helpers';
+import dbClient from '../../libs/db-client';
 import logger from '../../libs/logger';
 import routeRateLimiter from '../../libs/rate-limit';
 
@@ -27,18 +28,20 @@ async function newAccount(req: Request, res: Response) {
 
 async function login(req: Request, res: Response, next: NextFunction) {
 	try {
-		const resUsernameAndIP = await routeRateLimiter.get(req.userNameIpKey!);
+		const { user, userNameIpKey } = req;
+
+		const resUsernameAndIP = await routeRateLimiter.get(userNameIpKey!);
 
 		const { password, email } = req.body;
 		const loginResult = await authHelpers.loginUser(email, password);
 
 		if (loginResult.error) {
-			await routeRateLimiter.consume(req.userNameIpKey!);
+			await routeRateLimiter.consume(userNameIpKey!);
 			throw new NotAuthorizedError(loginResult.errorMessage);
 		}
 
 		if (resUsernameAndIP !== null && resUsernameAndIP.consumedPoints > 0) {
-			await routeRateLimiter.delete(req.userNameIpKey!);
+			await routeRateLimiter.delete(userNameIpKey!);
 		}
 		req.session.isAuthenticated = true;
 		req.session.userId = loginResult.user?.id;
@@ -56,15 +59,32 @@ async function logout(req: Request, res: Response, next: NextFunction) {
 	}
 }
 
-function changePassword(req: Request, res: Response, next: NextFunction) {
+async function changePassword(req: Request, res: Response, next: NextFunction) {
 	try {
-		// User is authenticated
+		const { newPassword, currentPassword } = req.body;
+		const { user, userNameIpKey } = req;
+		const resUsernameAndIP = await routeRateLimiter.get(userNameIpKey!);
 
-		// check password that was sent for verification
+		const verified = await authHelpers.verifyPassword(
+			currentPassword,
+			user?.password
+		);
+		if (!verified) {
+			await routeRateLimiter.consume(userNameIpKey!);
 
-		// If good then, update current password
+			throw new BadRequestError('Does not match the current password');
+		}
+		const newHashedPassword = await authHelpers.hashPassword(newPassword);
 
-		return res.sendStatus(200);
+		await dbClient.user.update({
+			where: { id: req.session.userId },
+			data: { password: newHashedPassword },
+		});
+
+		if (resUsernameAndIP !== null && resUsernameAndIP.consumedPoints > 0) {
+			await routeRateLimiter.delete(userNameIpKey!);
+		}
+		return res.status(200).json({ success: true });
 	} catch (error) {
 		return next(error);
 	}

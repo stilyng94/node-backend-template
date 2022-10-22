@@ -10,7 +10,7 @@ import cryptoUtils from '../utils/crypto-utils';
 async function generateResetPasswordUrl(userId: string): Promise<string> {
 	const secret = (await cryptoUtils.asyncRandomBytes(32)).toString('hex');
 
-	await redisClient.setEx(
+	await redisClient.setex(
 		`${constants.prefix.prefixResetPassword}${secret}`,
 		3600,
 		userId
@@ -20,7 +20,7 @@ async function generateResetPasswordUrl(userId: string): Promise<string> {
 }
 
 async function decodeResetPassword(token: string): Promise<string> {
-	const userId = await redisClient.getDel(
+	const userId = await redisClient.getdel(
 		`${constants.prefix.prefixResetPassword}${token}`
 	);
 

@@ -8,7 +8,7 @@ const userNameIpLimiterMiddleware = async (
 ) => {
 	let retrySecs = 0;
 	const userNameIpKey = getUsernameIPkey(
-		req.body.email ?? 'mail@mail.com',
+		req.body.email ?? req.session.userId ?? '',
 		req.ip
 	);
 	const resUsernameAndIP = await routeRateLimiter.get(userNameIpKey);

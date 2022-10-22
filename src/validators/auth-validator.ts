@@ -16,4 +16,33 @@ const newAccountValidator = checkSchema(
 	['body']
 );
 
-export default { newAccountValidator };
+const changePasswordValidator = checkSchema({
+	newPassword: {
+		isLength: { options: { max: 64, min: 8 } }, // Password length 8>=and <=64 according to OWASP
+
+		isStrongPassword: { options: { minLength: 8 } },
+	},
+	passwordConfirmation: {
+		custom: {
+			options(value, { req }) {
+				if (req.body.newPassword === value) {
+					return true;
+				}
+				throw new Error('passwords do not match');
+			},
+		},
+	},
+	currentPassword: {
+		notEmpty: {},
+		custom: {
+			options(value, { req }) {
+				if (req.body.newPassword !== value) {
+					return true;
+				}
+				throw new Error('current password should not be same as new password');
+			},
+		},
+	},
+});
+
+export default { newAccountValidator, changePasswordValidator };

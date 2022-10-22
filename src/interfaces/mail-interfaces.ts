@@ -9,7 +9,8 @@ export interface IEMailInput {
 	bcc?: string[];
 	from: string;
 	html?: string;
-	text?: string;
 	subject: string;
 	attachments?: Attachment[];
 }
+
+export type IEmailObj = Omit<IEMailInput, 'html'>;

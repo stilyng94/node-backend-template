@@ -20,7 +20,9 @@ const userNameIpLimiterMiddleware = async (
 
 	if (retrySecs > 0) {
 		res.set('X-Retry-After', String(retrySecs));
-		return res.status(429).send('Too Many Requests');
+		return res
+			.status(429)
+			.send({ success: false, message: 'Too Many Requests' });
 	}
 
 	await routeRateLimiter.consume(userNameIpKey);

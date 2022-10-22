@@ -1,15 +1,17 @@
 import express from 'express';
 import authController from '../../controller/v1/auth-controller';
-import deviceInfoMiddleware from '../../middleware/device-info-middleware';
 import rateLimiterMiddleware from '../../middleware/rate-limiter-middleware';
+import validateRequestMiddleWare from '../../middleware/validate-request-middleware';
+import authValidator from '../../validators/auth-validator';
 
 const authRouter = express.Router();
 
-authRouter.get(
-	'/login',
-	deviceInfoMiddleware,
+authRouter.post(
+	'/signup',
 	rateLimiterMiddleware.userNameIpLimiterMiddleware,
-	authController.login
+	authValidator.newAccountValidator,
+	validateRequestMiddleWare,
+	authController.newAccount
 );
 
 export default authRouter;

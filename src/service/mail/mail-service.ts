@@ -48,7 +48,9 @@ abstract class MailService {
 			if (!isReady) {
 				return null;
 			}
-			const result = await transporter.sendMail({ ...mailInput });
+			const result = await transporter.sendMail({
+				...mailInput,
+			});
 			const mailUrl = getTestMessageUrl(result);
 			logger.debug({}, 'Preview URL: ', mailUrl);
 			MailService.onRejectedHandler(result, mailInput);

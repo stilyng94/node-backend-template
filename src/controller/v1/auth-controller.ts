@@ -1,14 +1,25 @@
 import { NextFunction, Request, Response } from 'express';
+import authHelpers from '../../helpers/auth-helpers';
 import dbClient from '../../libs/db-client';
 import logger from '../../libs/logger';
 
-function newAccount(req: Request, res: Response, next: NextFunction) {
+async function newAccount(req: Request, res: Response) {
 	try {
-		// If mail exist OR was a success, 'A link to activate your account has been emailed to the address provided.'
-		// Password length 8>=and <=64
-		return res.sendStatus(200);
+		const { email, password } = req.body;
+		await authHelpers.createUser(email, password);
+		authHelpers.sendNewAccountMail(email);
+		return res.status(200).json({
+			success: true,
+			message:
+				'A link to activate your account has been emailed to the address provided',
+		});
 	} catch (error) {
-		return next(error);
+		logger.error(error);
+		return res.status(500).json({
+			success: false,
+			message:
+				'Sorry, we were unable to create your account. Please try again. If the issue continues, please contact Customer Support',
+		});
 	}
 }
 

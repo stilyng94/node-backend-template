@@ -1,17 +1,14 @@
 import crypto from 'crypto';
-import { promisify } from 'util';
 import { IEmailObj } from '../interfaces/mail-interfaces';
 import dbClient from '../libs/db-client';
 import mailHelpers from './mail-helpers';
 import BadRequestError from '../errors/bad-request-error';
 import redisClient from '../libs/redis-client';
 import constants from '../resources/constants';
-
-const asyncScrypt = promisify(crypto.scrypt);
-const asyncRandomBytes = promisify(crypto.randomBytes);
+import cryptoUtils from '../utils/crypto-utils';
 
 async function generateResetPasswordUrl(userId: string): Promise<string> {
-	const secret = (await asyncRandomBytes(32)).toString('hex');
+	const secret = (await cryptoUtils.asyncRandomBytes(32)).toString('hex');
 
 	await redisClient.setEx(
 		`${constants.prefix.prefixResetPassword}${secret}`,
@@ -43,8 +40,12 @@ const sendNewAccountMail = async (email: string) => {
 };
 
 const hashPassword = async (password: string) => {
-	const salt = (await asyncRandomBytes(32)).toString('hex');
-	const derivedKey = (await asyncScrypt(password, salt, 64)) as Buffer;
+	const salt = (await cryptoUtils.asyncRandomBytes(32)).toString('hex');
+	const derivedKey = (await cryptoUtils.asyncScrypt(
+		password,
+		salt,
+		64
+	)) as Buffer;
 	const hashedPassword = `${derivedKey.toString('hex')}.${salt}`;
 	return hashedPassword;
 };
@@ -53,7 +54,11 @@ const verifyPassword = async (password: string, hashedPassword: string) => {
 	const [key, salt] = hashedPassword.split('.');
 	const keyBuffer = Buffer.from(key, 'hex');
 
-	const derivedKey = (await asyncScrypt(password, salt, 64)) as Buffer;
+	const derivedKey = (await cryptoUtils.asyncScrypt(
+		password,
+		salt,
+		64
+	)) as Buffer;
 	return crypto.timingSafeEqual(keyBuffer, derivedKey);
 };
 

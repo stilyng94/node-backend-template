@@ -30,6 +30,7 @@ app.use(
 		cookie: {
 			secure: ['production', 'staging'].includes(process.env.NODE_ENV ?? ''),
 			httpOnly: true,
+			signed: false,
 			sameSite: 'lax', // csrf
 			maxAge: 1000 * 60 * 60 * 24 * 30, // 30days
 		},

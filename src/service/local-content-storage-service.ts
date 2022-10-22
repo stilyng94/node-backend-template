@@ -4,14 +4,14 @@ import { promisify } from 'util';
 import fs from 'fs';
 import { Request } from 'express';
 import logger from '../libs/logger';
-import mediaUtil from '../utils/media-util';
+import mediaHelpers from '../helpers/media-helpers';
 
 const MEDIA_DESTINATION = path.join('public', 'uploads');
 
 const storage = multer.diskStorage({
 	destination: MEDIA_DESTINATION,
 	filename: (_, file, cb) => {
-		cb(null, mediaUtil.createFileName(file));
+		cb(null, mediaHelpers.createFileName(file));
 	},
 });
 

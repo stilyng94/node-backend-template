@@ -8,7 +8,7 @@ describe('Testing sending mail with Ethereal Mail Service', () => {
 			from: 'from@mail.com',
 			subject: 'Test Ethereal Subject',
 			to: ['to@mail.com'],
-			text: 'Testing Ethereal mailing',
+			html: 'Testing Ethereal mailing',
 		});
 		expect(result).toHaveProperty('messageId');
 	});

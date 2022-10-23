@@ -69,9 +69,24 @@ const submitPasswordRecoveryValidator = checkSchema(
 	},
 	['body']
 );
+
+const loginValidator = checkSchema(
+	{
+		email: {
+			notEmpty: {},
+			isEmail: {},
+			normalizeEmail: { options: { all_lowercase: true } },
+		},
+		password: {
+			notEmpty: {},
+		},
+	},
+	['body']
+);
 export default {
 	newAccountValidator,
 	changePasswordValidator,
 	beginPasswordRecoveryValidator,
 	submitPasswordRecoveryValidator,
+	loginValidator,
 };

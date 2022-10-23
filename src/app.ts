@@ -11,6 +11,7 @@ import globalErrorHandler from './middleware/global-error-handler';
 import redisClient from './libs/redis-client';
 import initAppRoutes from './router/init-app-routes';
 import { pinoConsoleTransportConfig, pinoSentryStream } from './libs/logger';
+import oauthHelpers from './helpers/passport-helpers';
 
 const RedisStore = connectRedis(expressSession);
 const app = express();
@@ -63,6 +64,8 @@ app.use(
 			: undefined
 	)
 );
+
+oauthHelpers.initializePassport(app);
 
 app.use(express.static(path.join('public')));
 

@@ -1,4 +1,5 @@
 import express from 'express';
+import passport from 'passport';
 import authController from '../../controller/v1/auth-controller';
 import authMiddleware from '../../middleware/auth-middleware';
 import rateLimiterMiddleware from '../../middleware/rate-limiter-middleware';
@@ -18,12 +19,16 @@ authRouter.post(
 authRouter.post(
 	'/login',
 	rateLimiterMiddleware.userNameIpLimiterMiddleware,
-	authController.login
+	authValidator.loginValidator,
+	validateRequestMiddleWare,
+	passport.authenticate('local'),
+	authController.loginHandler
 );
 
 authRouter.post(
 	'/change-password',
 	rateLimiterMiddleware.userNameIpLimiterMiddleware,
+	passport.session(),
 	authMiddleware,
 	authValidator.changePasswordValidator,
 	validateRequestMiddleWare,
@@ -46,6 +51,18 @@ authRouter.post(
 	authValidator.submitPasswordRecoveryValidator,
 	validateRequestMiddleWare,
 	authController.submitPasswordRecovery
+);
+
+authRouter.post(
+	'/facebook-auth',
+	rateLimiterMiddleware.IpLimiterMiddleware,
+	passport.authenticate('facebook')
+);
+
+authRouter.get(
+	'/facebook-auth/callback',
+	passport.authenticate('facebook'),
+	authController.oAuthHandler
 );
 
 export default authRouter;

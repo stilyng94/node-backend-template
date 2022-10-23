@@ -26,7 +26,11 @@ app.use(
 		name: 'sid',
 		resave: false,
 		saveUninitialized: false,
-		store: new RedisStore({ client: redisClient, disableTouch: true }),
+		store: new RedisStore({
+			client: redisClient,
+			disableTouch: true,
+			ttl: 1000 * 60 * 60 * 24 * 30,
+		}),
 		cookie: {
 			secure: ['production', 'staging'].includes(process.env.NODE_ENV ?? ''),
 			httpOnly: true,

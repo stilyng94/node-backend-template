@@ -8,7 +8,7 @@ const userNameIpLimiterMiddleware = async (
 ) => {
 	let retrySecs = 0;
 	const userNameIpKey = getUsernameIPkey(
-		req.body.email ?? req.session.userId ?? '',
+		req.body.email ?? req.session.user?.id,
 		req.ip
 	);
 	const resUsernameAndIP = await routeRateLimiter.get(userNameIpKey);
@@ -30,4 +30,28 @@ const userNameIpLimiterMiddleware = async (
 	return next();
 };
 
-export default { userNameIpLimiterMiddleware };
+const IpLimiterMiddleware = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	let retrySecs = 0;
+
+	const resIP = await routeRateLimiter.get(req.ip);
+
+	// Check if IP is already blocked
+	if (resIP !== null && resIP.remainingPoints === 0) {
+		retrySecs = Math.round(resIP.msBeforeNext / 1000) || 1;
+	}
+
+	if (retrySecs > 0) {
+		res.set('X-Retry-After', String(retrySecs));
+		return res
+			.status(429)
+			.send({ success: false, message: 'Too Many Requests' });
+	}
+
+	return next();
+};
+
+export default { userNameIpLimiterMiddleware, IpLimiterMiddleware };

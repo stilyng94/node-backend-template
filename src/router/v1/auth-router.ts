@@ -31,4 +31,21 @@ authRouter.post(
 );
 
 authRouter.post('/logout', authController.logout);
+
+authRouter.post(
+	'/password-reset',
+	rateLimiterMiddleware.IpLimiterMiddleware,
+	authValidator.beginPasswordRecoveryValidator,
+	validateRequestMiddleWare,
+	authController.beginPasswordRecovery
+);
+
+authRouter.post(
+	'/submit-password-reset',
+	rateLimiterMiddleware.IpLimiterMiddleware,
+	authValidator.submitPasswordRecoveryValidator,
+	validateRequestMiddleWare,
+	authController.submitPasswordRecovery
+);
+
 export default authRouter;

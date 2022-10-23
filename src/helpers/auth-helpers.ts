@@ -19,7 +19,7 @@ async function generateResetPasswordUrl(userId: string): Promise<string> {
 	return `${process.env.FRONTEND_URL}/${constants.resetPasswordUrl}/${secret}`;
 }
 
-async function decodeResetPassword(token: string): Promise<string> {
+async function decodeResetPasswordToken(token: string): Promise<string> {
 	const userId = await redisClient.getdel(
 		`${constants.prefix.prefixResetPassword}${token}`
 	);
@@ -81,20 +81,54 @@ const loginUser = async (email: string, password: string) => {
 	if (!verified) {
 		return {
 			error: true,
-			user: null,
 			errorMessage:
 				'Invalid login credentials. Remember that password is case-sensitive. Please try again',
 		};
 	}
-	return { error: false, errorMessage: undefined, user };
+	return { error: false, user };
+};
+
+const sendResetPasswordMail = async (email: string, userId: string) => {
+	const emailObj: IEmailObj = {
+		from: process.env.FROM_ADDRESS ?? 'noreply@mail.com',
+		subject: 'Reset Password',
+		to: [email],
+	};
+	const resetLink = await generateResetPasswordUrl(userId);
+	await mailHelpers.sendMail(emailObj, '', { resetLink });
+};
+
+const sendResetPasswordSuccessMail = async (email: string) => {
+	const emailObj: IEmailObj = {
+		from: process.env.FROM_ADDRESS ?? 'noreply@mail.com',
+		subject: 'Reset Password Successful',
+		to: [email],
+	};
+	await mailHelpers.sendMail(emailObj, '', {});
+};
+
+const updatePassword = async (token: string, password: string) => {
+	const userId = await decodeResetPasswordToken(token);
+	const newHashedPassword = await hashPassword(password);
+	const count = await dbClient.user.count({ where: { id: userId } });
+	if (count === 0) {
+		throw new BadRequestError('token expired, please try again');
+	}
+	return dbClient.user.update({
+		where: { id: userId },
+		data: { password: newHashedPassword },
+	});
 };
 
 export default {
 	sendNewAccountMail,
+	sendResetPasswordMail,
+	updatePassword,
 	hashPassword,
 	createUser,
 	generateResetPasswordUrl,
-	decodeResetPassword,
+	sendResetPasswordSuccessMail,
+	decodeResetPasswordToken,
 	verifyPassword,
 	loginUser,
 };

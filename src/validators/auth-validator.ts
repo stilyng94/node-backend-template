@@ -45,4 +45,33 @@ const changePasswordValidator = checkSchema({
 	},
 });
 
-export default { newAccountValidator, changePasswordValidator };
+const beginPasswordRecoveryValidator = checkSchema(
+	{
+		email: {
+			notEmpty: {},
+			isEmail: {},
+			normalizeEmail: { options: { all_lowercase: true } },
+		},
+	},
+	['body']
+);
+
+const submitPasswordRecoveryValidator = checkSchema(
+	{
+		token: {
+			notEmpty: {},
+		},
+		password: {
+			isLength: { options: { max: 64, min: 8 } }, // Password length 8>=and <=64 according to OWASP
+
+			isStrongPassword: { options: { minLength: 8 } },
+		},
+	},
+	['body']
+);
+export default {
+	newAccountValidator,
+	changePasswordValidator,
+	beginPasswordRecoveryValidator,
+	submitPasswordRecoveryValidator,
+};

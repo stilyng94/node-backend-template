@@ -28,7 +28,7 @@ async function newAccount(req: Request, res: Response) {
 
 async function login(req: Request, res: Response, next: NextFunction) {
 	try {
-		const { user, userNameIpKey } = req;
+		const { userNameIpKey } = req;
 
 		const resUsernameAndIP = await routeRateLimiter.get(userNameIpKey!);
 
@@ -44,7 +44,8 @@ async function login(req: Request, res: Response, next: NextFunction) {
 			await routeRateLimiter.delete(userNameIpKey!);
 		}
 		req.session.isAuthenticated = true;
-		req.session.userId = loginResult.user?.id;
+		req.session.user = loginResult.user!;
+
 		return res.status(200).json({ success: true });
 	} catch (error) {
 		return next(error);
@@ -62,8 +63,13 @@ async function logout(req: Request, res: Response, next: NextFunction) {
 async function changePassword(req: Request, res: Response, next: NextFunction) {
 	try {
 		const { newPassword, currentPassword } = req.body;
-		const { user, userNameIpKey } = req;
+		const { userNameIpKey } = req;
+
 		const resUsernameAndIP = await routeRateLimiter.get(userNameIpKey!);
+
+		const user = await dbClient.user.findUnique({
+			where: { id: req.session.user?.id },
+		});
 
 		const verified = await authHelpers.verifyPassword(
 			currentPassword,
@@ -77,7 +83,7 @@ async function changePassword(req: Request, res: Response, next: NextFunction) {
 		const newHashedPassword = await authHelpers.hashPassword(newPassword);
 
 		await dbClient.user.update({
-			where: { id: req.session.userId },
+			where: { id: req.session.user?.id },
 			data: { password: newHashedPassword },
 		});
 
@@ -90,26 +96,51 @@ async function changePassword(req: Request, res: Response, next: NextFunction) {
 	}
 }
 
-function beginPasswordRecovery(
+async function beginPasswordRecovery(
 	req: Request,
 	res: Response,
 	next: NextFunction
 ) {
 	try {
-		// If mail exist OR was a success, 'If that email address is in our database, we will send you an email to reset your password.'
+		await routeRateLimiter.consume(req.ip, 2);
 
-		return res.sendStatus(200);
+		const { email } = req.body;
+
+		const user = await dbClient.user.findUnique({ where: { email } });
+		if (user) {
+			authHelpers.sendResetPasswordMail(email, user.id);
+		}
+
+		return res.status(200).json({
+			success: true,
+			message:
+				'If that email address is in our database, we will send you an email to reset your password.',
+		});
 	} catch (error) {
 		return next(error);
 	}
 }
 
-function passwordRecovery(req: Request, res: Response, next: NextFunction) {
+async function submitPasswordRecovery(
+	req: Request,
+	res: Response,
+	next: NextFunction
+) {
 	try {
-		// Update password
+		const { password, token } = req.body;
 
-		return res.sendStatus(200);
+		const resIP = await routeRateLimiter.get(req.ip);
+
+		const user = await authHelpers.updatePassword(token, password);
+
+		if (resIP !== null && resIP.consumedPoints > 0) {
+			await routeRateLimiter.delete(req.ip);
+		}
+		authHelpers.sendResetPasswordSuccessMail(user.email);
+
+		return res.status(200).json({ success: true });
 	} catch (error) {
+		await routeRateLimiter.consume(req.ip, 2);
 		return next(error);
 	}
 }
@@ -119,7 +150,7 @@ export default {
 	newAccount,
 	login,
 	beginPasswordRecovery,
-	passwordRecovery,
+	submitPasswordRecovery,
 	logout,
 };
 

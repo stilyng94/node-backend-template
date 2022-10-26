@@ -1,4 +1,13 @@
 import crypto from 'crypto';
+import { OauthProvider, User } from '@prisma/client';
+import { Request } from 'express';
+import { VerifyCallback } from 'passport-oauth2';
+import jsonwebtoken, { JwtPayload } from 'jsonwebtoken';
+import {
+	OAuth2Client as GoogleOAuth2Client,
+	TokenPayload,
+} from 'google-auth-library';
+import jwksClient from 'jwks-rsa';
 import { IEmailObj } from '../interfaces/mail-interfaces';
 import dbClient from '../libs/db-client';
 import mailHelpers from './mail-helpers';
@@ -6,6 +15,37 @@ import BadRequestError from '../errors/bad-request-error';
 import redisClient from '../libs/redis-client';
 import constants from '../resources/constants';
 import cryptoUtils from '../utils/crypto-utils';
+import logger from '../libs/logger';
+import routeRateLimiter from '../libs/rate-limit';
+
+type DecodedPayload = jsonwebtoken.JwtPayload | TokenPayload;
+
+const verifyGoogleOauthToken = async (token: string) => {
+	const client = new GoogleOAuth2Client(
+		process.env.GOOGLE_CLIENT_ID ?? 'clientId'
+	);
+	const ticket = await client.verifyIdToken({
+		idToken: token,
+		audience: process.env.GOOGLE_CLIENT_ID ?? 'clientId',
+	});
+	return ticket.getPayload();
+};
+
+const verifyFacebookOauthToken = async (token: string) => {
+	const client = jwksClient({
+		jwksUri: constants.urls.facebookJwkUrl,
+	});
+	const decodedPayload = jsonwebtoken.decode(token, { complete: true });
+	if (!decodedPayload) {
+		return null;
+	}
+	const signingKey = await client.getSigningKey(decodedPayload.header.kid);
+	const publicKey = signingKey.getPublicKey();
+	const metadata = jsonwebtoken.verify(token, publicKey, {
+		algorithms: ['RS256'],
+	}) as JwtPayload;
+	return metadata;
+};
 
 async function generateResetPasswordUrl(userId: string): Promise<string> {
 	const secret = (await cryptoUtils.asyncRandomBytes(32)).toString('hex');
@@ -120,6 +160,110 @@ const updatePassword = async (token: string, password: string) => {
 	});
 };
 
+const upsertOauthAccount = async (
+	provider: OauthProvider,
+	decodedPayload: DecodedPayload
+) => {
+	try {
+		let user: User | null;
+
+		if (Object.keys(decodedPayload).length < 1) {
+			return {
+				error: true,
+			};
+		}
+
+		const oAuthAccount = await dbClient.oauthCredential.findUnique({
+			where: {
+				provider_subject: {
+					provider,
+					subject: decodedPayload.sub!,
+				},
+			},
+		});
+
+		if (oAuthAccount) {
+			// Oauth account has been setup before
+			user = await dbClient.user.findUnique({
+				where: { id: oAuthAccount.userId },
+			});
+			if (!user) {
+				return {
+					error: true,
+				};
+			}
+			return { error: false, user };
+		}
+
+		// New account and oauth account
+
+		user = await dbClient.user.create({
+			data: {
+				email: decodedPayload.email,
+				password: 'fdkdl940#2fdsj',
+				OauthCredential: {
+					create: {
+						provider,
+						subject: decodedPayload.sub!,
+					},
+				},
+			},
+		});
+
+		if (!user) {
+			return {
+				error: true,
+			};
+		}
+		return { error: false, user, isNew: true };
+	} catch (error) {
+		logger.error(error);
+		return {
+			error: true,
+		};
+	}
+};
+
+const oauthStrategyVerifyHandler = async (
+	req: Request,
+	provider: OauthProvider,
+	params: Record<string, string | Array<string>>,
+	cb: VerifyCallback
+) => {
+	const idToken = params.id_token as string;
+
+	let decodedPayload: DecodedPayload | null | undefined;
+
+	if (provider === 'facebook') {
+		decodedPayload = await verifyFacebookOauthToken(idToken);
+	} else if (provider === 'google') {
+		decodedPayload = await verifyGoogleOauthToken(idToken);
+	}
+	logger.info(decodedPayload, 'profile');
+
+	if (!decodedPayload) {
+		await routeRateLimiter.consume(req.ip, 2);
+		return cb(
+			new BadRequestError('Could not login or create account from provider')
+		);
+	}
+
+	const result = await upsertOauthAccount(provider, decodedPayload);
+	if (result.error) {
+		await routeRateLimiter.consume(req.ip, 2);
+		return cb(
+			new BadRequestError('Could not login or create account from provider')
+		);
+	}
+
+	const resIP = await routeRateLimiter.get(req.ip);
+
+	if (resIP !== null && resIP.consumedPoints > 0) {
+		await routeRateLimiter.delete(req.ip);
+	}
+	return cb(null, result.user, { isNew: result.isNew });
+};
+
 export default {
 	sendNewAccountMail,
 	sendResetPasswordMail,
@@ -131,4 +275,5 @@ export default {
 	decodeResetPasswordToken,
 	verifyPassword,
 	loginUser,
+	oauthStrategyVerifyHandler,
 };

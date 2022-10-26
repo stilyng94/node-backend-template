@@ -3,40 +3,53 @@ import passport from 'passport';
 import OAuth2Strategy, { VerifyCallback } from 'passport-oauth2';
 import { Strategy as LocalStrategy } from 'passport-local';
 import NotAuthorizedError from '../errors/not-authorized-error';
-import logger from '../libs/logger';
 import authHelpers from './auth-helpers';
 import routeRateLimiter from '../libs/rate-limit';
-import BadRequestError from '../errors/bad-request-error';
+import constants from '../resources/constants';
 
 const facebookOAuth2Strategy = new OAuth2Strategy(
 	{
-		authorizationURL: 'https://www.example.com/oauth2/authorize',
-		tokenURL: 'https://www.example.com/oauth2/token',
+		state: true, // only use when using session.
+		authorizationURL: constants.urls.facebookAuthorizationURL,
+		tokenURL: constants.urls.facebookTokenURL,
 		clientID: process.env.FACEBOOK_CLIENT_ID ?? 'clientId',
 		clientSecret: process.env.FACEBOOK_CLIENT_SECRET ?? 'clientSecret',
 		scope: ['email', 'profile'],
-		callbackURL: 'http://localhost:3000/api/v1/auth/facebook-auth/callback',
+		callbackURL: `${process.env.BASE_URL}/v1/auth/facebook-auth/callback`,
 		passReqToCallback: true,
 	},
 	async (
 		req: Request,
-		accessToken: string,
-		refreshToken: string,
-		profile: unknown,
+		_: string,
+		__: string,
+		params: Record<string, string | Array<string>>,
+		___: Record<string, string | Array<string>>,
 		cb: VerifyCallback
 	) => {
-		const resIP = await routeRateLimiter.get(req.ip);
-		if (!profile) {
-			await routeRateLimiter.consume(req.ip, 2);
-			return cb(
-				new BadRequestError('Could not login or create account from provider')
-			);
-		}
-		if (resIP !== null && resIP.consumedPoints > 0) {
-			await routeRateLimiter.delete(req.ip);
-		}
-		logger.info(profile, 'profile');
-		return cb(null);
+		return authHelpers.oauthStrategyVerifyHandler(req, 'facebook', params, cb);
+	}
+);
+
+const googleOAuth2Strategy = new OAuth2Strategy(
+	{
+		state: true, // only use when using session.
+		authorizationURL: constants.urls.googleAuthorizationURL,
+		tokenURL: constants.urls.googleTokenURL,
+		clientID: process.env.GOOGLE_CLIENT_ID ?? 'clientId',
+		clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? 'clientSecret',
+		scope: ['email', 'profile'],
+		callbackURL: `${process.env.BASE_URL}/v1/auth/google-auth/callback`,
+		passReqToCallback: true,
+	},
+	async (
+		req: Request,
+		_: string,
+		__: string,
+		params: Record<string, string | Array<string>>,
+		___: Record<string, string | Array<string>>,
+		cb: VerifyCallback
+	) => {
+		return authHelpers.oauthStrategyVerifyHandler(req, 'google', params, cb);
 	}
 );
 
@@ -78,6 +91,7 @@ const initializePassport = (app: Application) => {
 	});
 	passport.use('facebook', facebookOAuth2Strategy);
 	passport.use('local', localStrategy);
+	passport.use('google', googleOAuth2Strategy);
 };
 
 export default { initializePassport };

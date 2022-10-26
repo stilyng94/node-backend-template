@@ -21,7 +21,7 @@ authRouter.post(
 	rateLimiterMiddleware.userNameIpLimiterMiddleware,
 	authValidator.loginValidator,
 	validateRequestMiddleWare,
-	passport.authenticate('local'),
+	passport.authenticate('local', { session: true }),
 	authController.loginHandler
 );
 
@@ -53,7 +53,7 @@ authRouter.post(
 	authController.submitPasswordRecovery
 );
 
-authRouter.post(
+authRouter.get(
 	'/facebook-auth',
 	rateLimiterMiddleware.IpLimiterMiddleware,
 	passport.authenticate('facebook')
@@ -61,7 +61,19 @@ authRouter.post(
 
 authRouter.get(
 	'/facebook-auth/callback',
-	passport.authenticate('facebook'),
+	passport.authenticate('facebook', { session: true }),
+	authController.oAuthHandler
+);
+
+authRouter.get(
+	'/google-auth',
+	rateLimiterMiddleware.IpLimiterMiddleware,
+	passport.authenticate('google')
+);
+
+authRouter.get(
+	'/google-auth/callback',
+	passport.authenticate('google', { session: true }),
 	authController.oAuthHandler
 );
 

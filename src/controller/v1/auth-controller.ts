@@ -122,7 +122,7 @@ async function submitPasswordRecovery(
 	}
 }
 
-async function oAuthHandler(_: Request, res: Response) {
+async function oAuthHandler(req: Request, res: Response) {
 	return res.status(200).json({ success: true });
 }
 

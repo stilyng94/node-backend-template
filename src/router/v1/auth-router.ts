@@ -35,8 +35,6 @@ authRouter.post(
 	authController.changePassword
 );
 
-authRouter.post('/logout', authController.logout);
-
 authRouter.post(
 	'/password-reset',
 	rateLimiterMiddleware.IpLimiterMiddleware,
@@ -61,6 +59,7 @@ authRouter.get(
 
 authRouter.get(
 	'/facebook-auth/callback',
+	passport.session(),
 	passport.authenticate('facebook', { session: true }),
 	authController.oAuthHandler
 );
@@ -73,8 +72,40 @@ authRouter.get(
 
 authRouter.get(
 	'/google-auth/callback',
+	passport.session(),
 	passport.authenticate('google', { session: true }),
 	authController.oAuthHandler
 );
+
+authRouter.get(
+	'/connect/google',
+	passport.session(),
+	authMiddleware,
+	passport.authorize('google', { session: true })
+);
+authRouter.get(
+	'/connect/facebook',
+	passport.session(),
+	authMiddleware,
+	passport.authorize('facebook', { session: true })
+);
+authRouter.post(
+	'/connect/local',
+	passport.session(),
+	authMiddleware,
+	authValidator.newAccountValidator,
+	validateRequestMiddleWare,
+	passport.authenticate('local', { session: true }),
+	authController.oAuthHandler
+);
+
+authRouter.delete(
+	'/unlink',
+	passport.session(),
+	authMiddleware,
+	authController.unlinkAccount
+);
+
+authRouter.all('/logout', authController.logout);
 
 export default authRouter;

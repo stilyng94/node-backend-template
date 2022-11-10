@@ -10,30 +10,44 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id                  String            @id @default(cuid())
-  email               String            @unique
-  password            String
-  isActive            Boolean           @default(false)
-  currentLoginDevice  String?
-  lastLoginDevice     String?
-  lastLoginIp         String?
-  currentLoginIp      String?
-  loginCount          Int               @default(0)
-  lastLoginOn         DateTime?
-  currentLoginOn      DateTime?
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  OauthCredential     OauthCredential[]
-  last_password_reset DateTime?
+model UserLocalCredential {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  Account       Account[]
 }
 
-model OauthCredential {
-  id       String        @id @default(cuid())
-  provider OauthProvider
-  subject  String
-  user     User          @relation(fields: [userId], references: [id])
-  userId   String
+model Account {
+  id                    String                @id @default(cuid())
+  userLocalCredential   UserLocalCredential?  @relation(fields: [userLocalCredentialId], references: [id])
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  currentLoginDevice    String?
+  lastLoginDevice       String?
+  lastLoginIp           String?
+  currentLoginIp        String?
+  loginCount            Int                   @default(0)
+  lastLoginOn           DateTime?
+  currentLoginOn        DateTime?
+  last_password_reset   DateTime?
+  userLocalCredentialId String?
+  UserOauthCredential   UserOauthCredential[]
+}
+
+model UserOauthCredential {
+  id        String        @id @default(cuid())
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  provider  OauthProvider
+  subject   String
+  email     String
+  account   Account       @relation(fields: [accountId], references: [id])
+  firstName String?
+  lastName  String?
+  accountId String
 
   @@unique([provider, subject])
 }

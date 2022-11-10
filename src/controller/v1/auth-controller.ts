@@ -1,3 +1,4 @@
+import { prisma } from '@prisma/client';
 import { NextFunction, Request, Response } from 'express';
 import BadRequestError from '../../errors/bad-request-error';
 import authHelpers from '../../helpers/auth-helpers';
@@ -9,7 +10,7 @@ async function newAccount(req: Request, res: Response) {
 	try {
 		const { email, password } = req.body;
 		await authHelpers.createUser(email, password);
-		authHelpers.sendNewAccountMail(email);
+		// authHelpers.sendNewAccountMail(email);
 		return res.status(200).json({
 			success: true,
 			message:
@@ -31,7 +32,10 @@ async function loginHandler(_: Request, res: Response) {
 
 async function logout(req: Request, res: Response, next: NextFunction) {
 	try {
-		return req.session.destroy(() => res.status(200).json({ success: true }));
+		return req.session.destroy(() => {
+			res.clearCookie('sid');
+			return res.status(200).json({ success: true });
+		});
 	} catch (error) {
 		return next();
 	}
@@ -44,7 +48,7 @@ async function changePassword(req: Request, res: Response, next: NextFunction) {
 
 		const resUsernameAndIP = await routeRateLimiter.get(userNameIpKey!);
 
-		const user = await dbClient.user.findUnique({
+		const user = await dbClient.userLocalCredential.findUnique({
 			where: { id: req.session.user?.id },
 		});
 
@@ -59,7 +63,7 @@ async function changePassword(req: Request, res: Response, next: NextFunction) {
 		}
 		const newHashedPassword = await authHelpers.hashPassword(newPassword);
 
-		await dbClient.user.update({
+		await dbClient.userLocalCredential.update({
 			where: { id: req.session.user?.id },
 			data: { password: newHashedPassword },
 		});
@@ -83,7 +87,9 @@ async function beginPasswordRecovery(
 
 		const { email } = req.body;
 
-		const user = await dbClient.user.findUnique({ where: { email } });
+		const user = await dbClient.userLocalCredential.findUnique({
+			where: { email },
+		});
 		if (user) {
 			authHelpers.sendResetPasswordMail(email, user.id);
 		}
@@ -126,6 +132,24 @@ async function oAuthHandler(req: Request, res: Response) {
 	return res.status(200).json({ success: true });
 }
 
+async function unlinkAccount(req: Request, res: Response, next: NextFunction) {
+	try {
+		const { strategy, strategyId } = req.query;
+		if (strategy === 'local') {
+			await dbClient.userLocalCredential.delete({
+				where: { id: strategyId as string },
+			});
+		} else {
+			await dbClient.userOauthCredential.delete({
+				where: { id: strategyId as string },
+			});
+		}
+		return res.status(200).json({ success: true });
+	} catch (error) {
+		return next(error);
+	}
+}
+
 export default {
 	changePassword,
 	newAccount,
@@ -134,6 +158,7 @@ export default {
 	submitPasswordRecovery,
 	logout,
 	oAuthHandler,
+	unlinkAccount,
 };
 
 // TODO: Require Re-authentication for Sensitive Features

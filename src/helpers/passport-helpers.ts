@@ -14,7 +14,7 @@ const facebookOAuth2Strategy = new OAuth2Strategy(
 		tokenURL: constants.urls.facebookTokenURL,
 		clientID: process.env.FACEBOOK_CLIENT_ID ?? 'clientId',
 		clientSecret: process.env.FACEBOOK_CLIENT_SECRET ?? 'clientSecret',
-		scope: ['email', 'profile'],
+		scope: ['email', 'public_profile'],
 		callbackURL: `${process.env.BASE_URL}/v1/auth/facebook-auth/callback`,
 		passReqToCallback: true,
 	},
@@ -59,17 +59,23 @@ const localStrategy = new LocalStrategy(
 		const { userNameIpKey } = req;
 
 		const resUsernameAndIP = await routeRateLimiter.get(userNameIpKey!);
-		const loginResult = await authHelpers.loginUser(email, password);
 
-		if (loginResult.error) {
-			await routeRateLimiter.consume(userNameIpKey!);
-			return cb(new NotAuthorizedError(loginResult.errorMessage));
-		}
-		if (resUsernameAndIP !== null && resUsernameAndIP.consumedPoints > 0) {
-			await routeRateLimiter.delete(userNameIpKey!);
-		}
+		if (!req.user) {
+			const loginResult = await authHelpers.loginUser(email, password);
 
-		return cb(null, loginResult.user);
+			if (loginResult.error) {
+				await routeRateLimiter.consume(userNameIpKey!);
+				return cb(new NotAuthorizedError(loginResult.errorMessage));
+			}
+			if (resUsernameAndIP !== null && resUsernameAndIP.consumedPoints > 0) {
+				await routeRateLimiter.delete(userNameIpKey!);
+			}
+
+			return cb(null, loginResult.user);
+		}
+		// linking
+		await authHelpers.createUser(email, password, req.user.id);
+		return cb(null, req.user);
 	}
 );
 
@@ -78,9 +84,7 @@ const initializePassport = (app: Application) => {
 
 	passport.serializeUser((user, cb) => {
 		return cb(null, {
-			email: user.email,
 			id: user.id,
-			isActive: user.isActive,
 		});
 	});
 	passport.deserializeUser((user, cb) => {

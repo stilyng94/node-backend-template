@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { OauthProvider, User } from '@prisma/client';
+import { Account, OauthProvider } from '@prisma/client';
 import { Request } from 'express';
 import { VerifyCallback } from 'passport-oauth2';
 import jsonwebtoken, { JwtPayload } from 'jsonwebtoken';
@@ -7,7 +7,7 @@ import {
 	OAuth2Client as GoogleOAuth2Client,
 	TokenPayload,
 } from 'google-auth-library';
-import jwksClient from 'jwks-rsa';
+import JwksRsa from 'jwks-rsa';
 import { IEmailObj } from '../interfaces/mail-interfaces';
 import dbClient from '../libs/db-client';
 import mailHelpers from './mail-helpers';
@@ -32,19 +32,28 @@ const verifyGoogleOauthToken = async (token: string) => {
 };
 
 const verifyFacebookOauthToken = async (token: string) => {
-	const client = jwksClient({
-		jwksUri: constants.urls.facebookJwkUrl,
-	});
-	const decodedPayload = jsonwebtoken.decode(token, { complete: true });
-	if (!decodedPayload) {
+	try {
+		const jwksClient = JwksRsa({
+			jwksUri: constants.urls.facebookJwkUrl,
+			rateLimit: true,
+			cache: true,
+		});
+		const decodedPayload = jsonwebtoken.decode(token, { complete: true });
+		if (!decodedPayload) {
+			return null;
+		}
+		const signingKey = await jwksClient.getSigningKey(
+			decodedPayload.header.kid
+		);
+		const publicKey = signingKey.getPublicKey();
+		const metadata = jsonwebtoken.verify(token, publicKey, {
+			algorithms: ['RS256'],
+		}) as JwtPayload;
+		return metadata;
+	} catch (error) {
+		logger.error(error);
 		return null;
 	}
-	const signingKey = await client.getSigningKey(decodedPayload.header.kid);
-	const publicKey = signingKey.getPublicKey();
-	const metadata = jsonwebtoken.verify(token, publicKey, {
-		algorithms: ['RS256'],
-	}) as JwtPayload;
-	return metadata;
 };
 
 async function generateResetPasswordUrl(userId: string): Promise<string> {
@@ -106,16 +115,36 @@ const verifyPassword = async (password: string, hashedPassword = '') => {
 	}
 };
 
-const createUser = async (email: string, password: string) => {
+const createUser = async (
+	email: string,
+	password: string,
+	accountId?: string
+) => {
 	const hashedPassword = await hashPassword(password);
-	const user = await dbClient.user.create({
-		data: { email, password: hashedPassword },
+	let info = null;
+
+	// check if an oauth account has same email
+	const existOauthAccount = await dbClient.userOauthCredential.findFirst({
+		where: { email },
 	});
-	return user;
+	if (existOauthAccount) {
+		info = `Email was already used to login with ${existOauthAccount.provider}`;
+	}
+
+	const user = await dbClient.userLocalCredential.create({
+		data: {
+			email,
+			password: hashedPassword,
+			Account: { connectOrCreate: { create: {}, where: { id: accountId } } },
+		},
+	});
+	return { user, info };
 };
 
 const loginUser = async (email: string, password: string) => {
-	const user = await dbClient.user.findUnique({ where: { email } });
+	const user = await dbClient.userLocalCredential.findUnique({
+		where: { email },
+	});
 	const verified = await verifyPassword(password, user?.password);
 
 	if (!verified) {
@@ -150,22 +179,25 @@ const sendResetPasswordSuccessMail = async (email: string) => {
 const updatePassword = async (token: string, password: string) => {
 	const userId = await decodeResetPasswordToken(token);
 	const newHashedPassword = await hashPassword(password);
-	const count = await dbClient.user.count({ where: { id: userId } });
+	const count = await dbClient.userLocalCredential.count({
+		where: { id: userId },
+	});
 	if (count === 0) {
 		throw new BadRequestError('token expired, please try again');
 	}
-	return dbClient.user.update({
+	return dbClient.userLocalCredential.update({
 		where: { id: userId },
 		data: { password: newHashedPassword },
 	});
 };
 
 const upsertOauthAccount = async (
+	req: Request,
 	provider: OauthProvider,
 	decodedPayload: DecodedPayload
 ) => {
 	try {
-		let user: User | null;
+		let user: Account | null;
 
 		if (Object.keys(decodedPayload).length < 1) {
 			return {
@@ -173,7 +205,7 @@ const upsertOauthAccount = async (
 			};
 		}
 
-		const oAuthAccount = await dbClient.oauthCredential.findUnique({
+		const oAuthAccount = await dbClient.userOauthCredential.findUnique({
 			where: {
 				provider_subject: {
 					provider,
@@ -182,40 +214,72 @@ const upsertOauthAccount = async (
 			},
 		});
 
-		if (oAuthAccount) {
-			// Oauth account has been setup before
-			user = await dbClient.user.findUnique({
-				where: { id: oAuthAccount.userId },
-			});
-			if (!user) {
-				return {
-					error: true,
-				};
+		if (!oAuthAccount) {
+			if (!req.user) {
+				//! New account and oauth account => SIGNUP
+				user = await dbClient.account.create({
+					data: {
+						UserOauthCredential: {
+							create: {
+								provider,
+								subject: decodedPayload.sub!,
+								email: decodedPayload.email,
+								firstName: decodedPayload.given_name,
+								lastName: decodedPayload.family_name,
+							},
+						},
+					},
+				});
+
+				if (!user) {
+					return {
+						error: true,
+					};
+				}
+				return { error: false, user, isNew: true };
 			}
-			return { error: false, user };
+			//! New OAUTH & OAUTH LINKING
+
+			await dbClient.userOauthCredential.create({
+				data: {
+					provider,
+					accountId: req.user.id,
+					subject: decodedPayload.sub!,
+					email: decodedPayload.email,
+					firstName: decodedPayload.given_name,
+					lastName: decodedPayload.family_name,
+				},
+			});
+			return { error: false, user: req.user };
 		}
 
-		// New account and oauth account
+		//! when oauth exists
 
-		user = await dbClient.user.create({
-			data: {
-				email: decodedPayload.email,
-				password: 'fdkdl940#2fdsj',
-				OauthCredential: {
-					create: {
-						provider,
-						subject: decodedPayload.sub!,
-					},
-				},
-			},
+		if (req.user) {
+			//! Existing OAUTH & OAUTH LINKING
+			// Check if already linked
+			if (oAuthAccount.accountId === req.user.id) {
+				// Already linked
+				return { error: false, user: req.user, msg: 'already linked' };
+			}
+			// LINK & UPDATE RECORDS THAT WHERE LINKED TO OLD ACCOUNT_ID
+			await dbClient.userOauthCredential.updateMany({
+				where: { accountId: oAuthAccount.accountId },
+				data: { accountId: req.user.id },
+			});
+
+			return { error: false, user: req.user, msg: 'link success' };
+		}
+		// LOGIN
+		user = await dbClient.account.findFirst({
+			where: { id: oAuthAccount.accountId },
 		});
-
 		if (!user) {
 			return {
 				error: true,
 			};
 		}
-		return { error: false, user, isNew: true };
+		return { error: false, user };
 	} catch (error) {
 		logger.error(error);
 		return {
@@ -239,7 +303,6 @@ const oauthStrategyVerifyHandler = async (
 	} else if (provider === 'google') {
 		decodedPayload = await verifyGoogleOauthToken(idToken);
 	}
-	logger.info(decodedPayload, 'profile');
 
 	if (!decodedPayload) {
 		await routeRateLimiter.consume(req.ip, 2);
@@ -248,7 +311,7 @@ const oauthStrategyVerifyHandler = async (
 		);
 	}
 
-	const result = await upsertOauthAccount(provider, decodedPayload);
+	const result = await upsertOauthAccount(req, provider, decodedPayload);
 	if (result.error) {
 		await routeRateLimiter.consume(req.ip, 2);
 		return cb(

@@ -10,7 +10,8 @@ dotenv.config();
 const port = parseInt(process.env.PORT ?? '5000', 10);
 
 async function onSignal() {
-	logger.warn({}, 'server cleanup started!!');
+	// eslint-disable-next-line no-console
+	console.warn('server cleanup started!!');
 	return Promise.all([redisClient.quit(), dbClient.$disconnect()]);
 }
 
@@ -27,7 +28,8 @@ const main = async () => {
 			signals: ['SIGINT', 'SIGBREAK', 'SIGHUP', 'SIGTERM'],
 			healthChecks: { '/health-check': healthCheck },
 			onShutdown: async () =>
-				logger.warn({}, 'cleanup finished, server is shutting down'),
+				// eslint-disable-next-line no-console
+				console.warn('cleanup finished, server is shutting down'),
 			onSignal,
 		}).listen(port);
 	} catch (error) {

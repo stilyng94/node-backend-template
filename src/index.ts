@@ -38,10 +38,13 @@ const main = async () => {
 };
 
 process.on('uncaughtException', async (error) => {
-	logger.error(error);
+	logger.error(error, `Uncaught Exception: ${error?.message}`);
 	await redisClient.quit();
 	await dbClient.$disconnect();
 	process.exit(1);
+});
+process.on('unhandledRejection', async (error) => {
+	logger.error(error, `Unhandled rejection: ${(error as Error)?.message}`);
 });
 
 main();

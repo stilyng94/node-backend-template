@@ -7,9 +7,9 @@ async function main() {
 
 	const password = await authHelpers.hashPassword('Nkunim123#');
 	const email = 'test@test.io';
-	await dbClient.user.upsert({
+	await dbClient.userLocalCredential.upsert({
 		where: { email },
-		create: { email, password },
+		create: { email, password, Account: { create: {} } },
 		update: {},
 	});
 }

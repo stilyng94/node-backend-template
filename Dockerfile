@@ -45,6 +45,8 @@ COPY --from=builder /usr/app/dist ./dist
 COPY --from=stager /usr/app/node_modules ./node_modules
 COPY ecosystem.config.js ./
 COPY views ./views
+COPY --chown=node:node entrypoint.sh ./
+
 
 
 RUN yarn global add pm2

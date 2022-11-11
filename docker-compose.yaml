@@ -16,3 +16,4 @@ services:
     restart: unless-stopped
     ports:
       - '${PORT}:${PORT}'
+    entrypoint: ['./entrypoint.sh']

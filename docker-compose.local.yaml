@@ -8,6 +8,7 @@ services:
     env_file: .env
     container_name: api
     restart: unless-stopped
+    entrypoint: ['./entrypoint_dev.sh']
     volumes:
       - ./src:/usr/app/src
       - ./node_modules:/usr/app/node_modules

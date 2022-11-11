@@ -17,6 +17,8 @@ const RedisStore = connectRedis(expressSession);
 const app = express();
 
 app.set('trust proxy', true);
+app.set('views', path.join('views'));
+app.set('view engine', 'ejs');
 app.disable('x-powered-by');
 app.use(helmet());
 app.use(cors({ optionsSuccessStatus: 200, credentials: true }));

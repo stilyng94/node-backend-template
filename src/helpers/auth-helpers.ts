@@ -85,7 +85,9 @@ const sendNewAccountMail = async (email: string) => {
 		subject: 'New Account',
 		to: [email],
 	};
-	await mailHelpers.sendMail(emailObj, '', { email });
+	await mailHelpers.sendMail(emailObj, 'new-account', {
+		email,
+	});
 };
 
 const hashPassword = async (password: string) => {
@@ -164,7 +166,7 @@ const sendResetPasswordMail = async (email: string, userId: string) => {
 		to: [email],
 	};
 	const resetLink = await generateResetPasswordUrl(userId);
-	await mailHelpers.sendMail(emailObj, '', { resetLink });
+	await mailHelpers.sendMail(emailObj, 'reset-password', { resetLink });
 };
 
 const sendResetPasswordSuccessMail = async (email: string) => {
@@ -173,7 +175,7 @@ const sendResetPasswordSuccessMail = async (email: string) => {
 		subject: 'Reset Password Successful',
 		to: [email],
 	};
-	await mailHelpers.sendMail(emailObj, '', {});
+	await mailHelpers.sendMail(emailObj, 'reset-password-success', {});
 };
 
 const updatePassword = async (token: string, password: string) => {

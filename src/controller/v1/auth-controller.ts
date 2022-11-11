@@ -1,4 +1,3 @@
-import { prisma } from '@prisma/client';
 import { NextFunction, Request, Response } from 'express';
 import BadRequestError from '../../errors/bad-request-error';
 import authHelpers from '../../helpers/auth-helpers';
@@ -10,7 +9,7 @@ async function newAccount(req: Request, res: Response) {
 	try {
 		const { email, password } = req.body;
 		await authHelpers.createUser(email, password);
-		// authHelpers.sendNewAccountMail(email);
+		authHelpers.sendNewAccountMail(email);
 		return res.status(200).json({
 			success: true,
 			message:

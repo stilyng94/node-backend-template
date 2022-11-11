@@ -1,6 +1,6 @@
 FROM node:lts-bullseye-slim@sha256:d93fb5c25db163dc795d40eabf66251a2daf6a2c6a2d21cc29930e754aef4c2c
 
-RUN apt-get install -y dumb-init
+RUN apt-get update -y && apt-get install -y dumb-init
 
 
 ENV LANG C.UTF-8
@@ -24,4 +24,5 @@ RUN chown -R node /usr/app
 
 USER node
 
-CMD ["dumb-init","yarn", "dev"]
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+CMD ["/bin/bash", "-c", "./entrypoint_dev.sh; yarn dev"]

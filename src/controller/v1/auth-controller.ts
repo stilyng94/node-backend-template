@@ -49,7 +49,7 @@ async function changePassword(req: Request, res: Response, next: NextFunction) {
 		const resUsernameAndIP = await routeRateLimiter.get(userNameIpKey!);
 
 		const user = await dbClient.userLocalCredential.findUnique({
-			where: { id: req.session.user?.id },
+			where: { id: req.user?.id },
 		});
 
 		const verified = await authHelpers.verifyPassword(
@@ -64,7 +64,7 @@ async function changePassword(req: Request, res: Response, next: NextFunction) {
 		const newHashedPassword = await authHelpers.hashPassword(newPassword);
 
 		await dbClient.userLocalCredential.update({
-			where: { id: req.session.user?.id },
+			where: { id: req.user?.id },
 			data: { password: newHashedPassword },
 		});
 

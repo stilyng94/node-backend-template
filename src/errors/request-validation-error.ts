@@ -4,11 +4,9 @@ import CustomError from './custom-error';
 class RequestValidationError extends CustomError {
 	statusCode = 422;
 
-	errors: ValidationError[];
-
-	constructor(errors: ValidationError[]) {
+	constructor(public errors: ValidationError[]) {
 		super('invalid request parameters');
-		this.errors = errors;
+		Object.setPrototypeOf(this, RequestValidationError.prototype);
 	}
 
 	serializeErrors() {

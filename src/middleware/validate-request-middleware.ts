@@ -13,9 +13,7 @@ const validateRequestMiddleWare = (
 ) => {
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
-		const serializedErrors = new RequestValidationError(errors.array());
-		const data = serializedErrors.serializeErrors();
-		return res.status(400).json({ success: false, errors: [...data] });
+		throw new RequestValidationError(errors.array());
 	}
 	return next();
 };

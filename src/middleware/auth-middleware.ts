@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
+import NotAuthorizedError from '../errors/not-authorized-error';
 
-async function authMiddleware(req: Request, res: Response, next: NextFunction) {
+function authMiddleware(req: Request, res: Response, next: NextFunction) {
 	if (!req.user) {
-		return res.status(401).json({ success: false, message: 'unauthorized' });
+		throw new NotAuthorizedError();
 	}
 	return next();
 }

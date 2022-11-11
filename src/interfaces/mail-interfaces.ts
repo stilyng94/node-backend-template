@@ -1,16 +1,15 @@
 import { Attachment } from 'nodemailer/lib/mailer';
 
 /**
- * @description Email input
+ * @description Base email interface
  */
-export interface IEMailInput {
+export interface IEmailObj {
 	to: string[];
 	cc?: string[];
 	bcc?: string[];
 	from: string;
-	html?: string;
 	subject: string;
 	attachments?: Attachment[];
 }
 
-export type IEmailObj = Omit<IEMailInput, 'html'>;
+export type IEMailInput = IEmailObj & { html?: string };

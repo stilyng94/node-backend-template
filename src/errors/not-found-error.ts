@@ -10,6 +10,7 @@ class NotFoundError extends CustomError {
 	constructor(req: Request) {
 		const message = `Route not found: ${req.originalUrl}`;
 		super(message);
+		Object.setPrototypeOf(this, NotFoundError.prototype);
 	}
 
 	serializeErrors(): Array<{ message: string; field?: string }> {

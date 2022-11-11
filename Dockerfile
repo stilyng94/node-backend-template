@@ -26,6 +26,7 @@ WORKDIR /usr/app
 
 COPY --from=builder /usr/app/package.json ./
 COPY --from=builder /usr/app/yarn.lock ./
+COPY prisma ./primsa
 
 RUN yarn install --prod
 
@@ -45,7 +46,8 @@ COPY --from=builder /usr/app/dist ./dist
 COPY --from=stager /usr/app/node_modules ./node_modules
 COPY ecosystem.config.js ./
 COPY views ./views
-COPY --chown=node:node entrypoint.sh ./
+COPY prisma ./primsa
+COPY entrypoint.sh ./
 
 
 

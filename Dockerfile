@@ -44,6 +44,7 @@ COPY --from=stager /usr/app/yarn.lock ./
 COPY --from=builder /usr/app/dist ./dist
 COPY --from=stager /usr/app/node_modules ./node_modules
 COPY ecosystem.config.js ./
+COPY views ./views
 
 
 RUN yarn global add pm2

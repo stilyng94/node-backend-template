@@ -12,6 +12,7 @@ services:
       - ./src:/usr/app/src
       - ./node_modules:/usr/app/node_modules
       - ./package.json:/usr/app/package.json
+      - ./views:/usr/app/views
     ports:
       - '${PORT}:${PORT}'
       - '9229:9229'

@@ -15,7 +15,7 @@ const facebookOAuth2Strategy = new OAuth2Strategy(
 		clientID: process.env.FACEBOOK_CLIENT_ID ?? 'clientId',
 		clientSecret: process.env.FACEBOOK_CLIENT_SECRET ?? 'clientSecret',
 		scope: ['email', 'public_profile'],
-		callbackURL: `${process.env.BASE_URL}/v1/auth/facebook-auth/callback`,
+		callbackURL: `${process.env.BASE_URL}/api/v1/auth/facebook-auth/callback`,
 		passReqToCallback: true,
 	},
 	async (
@@ -38,7 +38,7 @@ const googleOAuth2Strategy = new OAuth2Strategy(
 		clientID: process.env.GOOGLE_CLIENT_ID ?? 'clientId',
 		clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? 'clientSecret',
 		scope: ['email', 'profile'],
-		callbackURL: `${process.env.BASE_URL}/v1/auth/google-auth/callback`,
+		callbackURL: `${process.env.BASE_URL}/api/v1/auth/google-auth/callback`,
 		passReqToCallback: true,
 	},
 	async (
@@ -50,6 +50,29 @@ const googleOAuth2Strategy = new OAuth2Strategy(
 		cb: VerifyCallback
 	) => {
 		return authHelpers.oauthStrategyVerifyHandler(req, 'google', params, cb);
+	}
+);
+
+const githubOAuth2Strategy = new OAuth2Strategy(
+	{
+		state: true, // only use when using session.
+		authorizationURL: constants.urls.githubAuthorizationURL,
+		tokenURL: constants.urls.githubTokenURL,
+		clientID: process.env.GOOGLE_CLIENT_ID ?? 'clientId',
+		clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? 'clientSecret',
+		scope: ['user:email'],
+		callbackURL: `${process.env.BASE_URL}/api/v1/auth/github-auth/callback`,
+		passReqToCallback: true,
+	},
+	async (
+		req: Request,
+		_: string,
+		__: string,
+		params: Record<string, string | Array<string>>,
+		___: Record<string, string | Array<string>>,
+		cb: VerifyCallback
+	) => {
+		return authHelpers.oauthStrategyVerifyHandler(req, 'github', params, cb);
 	}
 );
 
@@ -96,6 +119,7 @@ const initializePassport = (app: Application) => {
 	passport.use('facebook', facebookOAuth2Strategy);
 	passport.use('local', localStrategy);
 	passport.use('google', googleOAuth2Strategy);
+	passport.use('github', githubOAuth2Strategy);
 };
 
 export default { initializePassport };

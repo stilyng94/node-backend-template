@@ -8,11 +8,40 @@ services:
     env_file: .env
     container_name: api
     healthcheck:
-      test: ['CMD', 'curl', '--fail', 'http://api:${PORT}/health-check']
+      test: ['CMD', 'curl', '--fail', 'http://api:5001/health-check']
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
     restart: unless-stopped
     ports:
-      - '${PORT}:${PORT}'
+      - '5001:5001'
+    depends_on:
+      - db
+      - redis
+
+
+  redis:
+    image: bitnami/redis@sha256:76d250e94bd9d9315a807e8a45adc48091927802d54110187cbaee98a59bc4f1
+    env_file: .env
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - '7379:6379'
+    # volumes:
+    #   - './runtime/bitnami/redis/data:/bitnami/redis/data'
+
+  db:
+    image: postgres:14-alpine
+    env_file: .env
+    container_name: db
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - '6432:5432'
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+
+volumes:
+  pgdata:

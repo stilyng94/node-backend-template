@@ -8,18 +8,18 @@
 	"scripts": {
 		"build": "rm -rf ./dist && tsc",
 		"lint": "prettier --write --ignore-unknown . && eslint --fix --ext src/*.{js,ts}",
-		"start": "pm2-runtime ecosystem.config.js --json --only api",
+		"start": "node ./dist/index.js",
 		"dev": "nodemon -L ./src/index.ts",
 		"prepare": "husky install",
 		"test": "jest --detectOpenHandles --no-cache -i",
 		"prototype": "prisma db push --accept-data-loss",
 		"studio": "prisma studio",
 		"generate": "prisma generate",
-		"format": "prisma format && yarn generate",
+		"format": "prisma format && pnpm generate",
 		"reset:db": "prisma migrate reset --skip-seed",
 		"migrate:deploy": "prisma migrate deploy",
 		"migrate:dev": "prisma migrate dev --skip-seed",
-		"seed": "yarn prisma db seed",
+		"seed": "pnpm prisma db seed",
 		"seed:dev": "ts-node ./src/seed/seed.ts"
 	},
 	"devDependencies": {
@@ -36,6 +36,7 @@
 		"@types/multer": "^1.4.7",
 		"@types/node": "^18.8.0",
 		"@types/nodemailer": "^6.4.6",
+		"@types/passport": "^1.0.11",
 		"@types/passport-local": "^1.0.34",
 		"@types/passport-oauth2": "^1.4.11",
 		"@types/supertest": "^2.0.12",
@@ -58,7 +59,6 @@
 		"nodemon": "^2.0.20",
 		"pino-pretty": "^9.1.0",
 		"prettier": "^2.7.1",
-		"prisma": "^4.5.0",
 		"supertest": "^6.3.0",
 		"ts-jest": "^29.0.3",
 		"ts-node": "^10.9.1",
@@ -68,6 +68,7 @@
 		"@godaddy/terminus": "^4.11.2",
 		"@prisma/client": "^4.5.0",
 		"@sentry/node": "^7.14.1",
+		"axios": "^1.2.0",
 		"connect-redis": "^6.1.3",
 		"cors": "^2.8.5",
 		"dotenv": "^16.0.3",
@@ -89,6 +90,7 @@
 		"pino": "^8.6.1",
 		"pino-http": "^8.2.1",
 		"pino-sentry": "^0.13.0",
+		"prisma": "^4.6.1",
 		"rate-limiter-flexible": "^2.3.12",
 		"ua-parser-js": "^1.0.32"
 	},
@@ -98,7 +100,7 @@
 	"engineStrict": true,
 	"lint-staged": {
 		"src/*.{js,ts}": [
-			"yarn lint"
+			"pnpm lint"
 		]
 	},
 	"prisma": {

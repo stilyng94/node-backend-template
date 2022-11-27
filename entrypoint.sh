@@ -1,18 +1,12 @@
-#!/bin/sh
-
+#!/usr/bin/env bash
 set -e
 
-
 echo "migrate for deployment"
-yarn migrate:deploy
+pnpm migrate:deploy
 echo "migration success"
 
-echo "generate database"
-yarn generate
-echo "generate success"
-
 echo "Seeding database"
-yarn seed
+pnpm seed
 echo "seeding success"
 
 echo "start app"

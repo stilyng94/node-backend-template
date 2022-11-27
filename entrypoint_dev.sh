@@ -1,13 +1,12 @@
-#!/bin/sh
-
+#!/usr/bin/env bash
 set -e
 
 echo "create tables"
-yarn prototype
+pnpm prototype
 echo "tables created"
 
 echo "Seeding database"
-yarn seed:dev
+pnpm seed:dev
 echo "seeding success"
 
 echo "start app"

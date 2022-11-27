@@ -14,8 +14,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['16.16.0']
+        node-version: ['16.16.0','18.12.1']
         os: [ubuntu-22.04]
+        pnpm-version: ['7.17.1']
 
     name: Node ${{matrix.node-version}}
     steps:
@@ -23,5 +24,11 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install
-      - run: yarn build
+      - uses: pnpm/action-setup@v2
+        with:
+          version: ${{ matrix.pnpm-version }}
+          run_install: |
+            - args: ['--frozen-lockfile']
+
+      - run: pnpm install
+      - run: pnpm build

@@ -28,7 +28,6 @@ jobs:
         with:
           version: ${{ matrix.pnpm-version }}
           run_install: |
-            - args: ['--frozen-lockfile']
+            - args: ['--frozen-lockfile','--ignore-scripts ']
 
-      - run: pnpm install
       - run: pnpm build

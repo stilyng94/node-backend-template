@@ -4,6 +4,18 @@
 	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
 	"version": "0.2.0",
 	"configurations": [
+    {
+      "name": "Local",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**", "node_modules/**"],
+      "type": "node",
+      "localRoot": "${workspaceFolder}/src",
+      "runtimeVersion": "18.12.1",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["run-script", "dev"]
+
+    },
+
 		{
 			"name": "Docker: Attach to Node",
 			"type": "node",

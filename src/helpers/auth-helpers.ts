@@ -3,11 +3,9 @@ import { Account, OauthProvider } from '@prisma/client';
 import { Request } from 'express';
 import { VerifyCallback } from 'passport-oauth2';
 import jsonwebtoken, { JwtPayload } from 'jsonwebtoken';
-import {
-	OAuth2Client as GoogleOAuth2Client,
-	TokenPayload,
-} from 'google-auth-library';
+import { OAuth2Client as GoogleOAuth2Client } from 'google-auth-library';
 import JwksRsa from 'jwks-rsa';
+import axios from 'axios';
 import { IEmailObj } from '../interfaces/mail-interfaces';
 import dbClient from '../libs/db-client';
 import mailHelpers from './mail-helpers';
@@ -17,10 +15,11 @@ import constants from '../resources/constants';
 import cryptoUtils from '../utils/crypto-utils';
 import logger from '../libs/logger';
 import routeRateLimiter from '../libs/rate-limit';
+import OauthUser from '../interfaces/oauth-user';
 
-type DecodedPayload = jsonwebtoken.JwtPayload | TokenPayload;
-
-const verifyGoogleOauthToken = async (token: string) => {
+const verifyGoogleOauthToken = async (
+	token: string
+): Promise<OauthUser | null> => {
 	const client = new GoogleOAuth2Client(
 		process.env.GOOGLE_CLIENT_ID ?? 'clientId'
 	);
@@ -28,10 +27,22 @@ const verifyGoogleOauthToken = async (token: string) => {
 		idToken: token,
 		audience: process.env.GOOGLE_CLIENT_ID ?? 'clientId',
 	});
-	return ticket.getPayload();
+	const metadata = ticket.getPayload();
+	if (!metadata) {
+		return null;
+	}
+	return {
+		email: metadata.email!,
+		id: metadata.sub,
+		name: metadata.name,
+		firstName: metadata.given_name,
+		lastName: metadata.family_name,
+	};
 };
 
-const verifyFacebookOauthToken = async (token: string) => {
+const verifyFacebookOauthToken = async (
+	token: string
+): Promise<OauthUser | null> => {
 	try {
 		const jwksClient = JwksRsa({
 			jwksUri: constants.urls.facebookJwkUrl,
@@ -49,7 +60,13 @@ const verifyFacebookOauthToken = async (token: string) => {
 		const metadata = jsonwebtoken.verify(token, publicKey, {
 			algorithms: ['RS256'],
 		}) as JwtPayload;
-		return metadata;
+		return {
+			email: metadata.email,
+			id: metadata.sub!,
+			name: metadata.name,
+			firstName: metadata.firstname,
+			lastName: metadata.lastname,
+		};
 	} catch (error) {
 		logger.error(error);
 		return null;
@@ -193,10 +210,27 @@ const updatePassword = async (token: string, password: string) => {
 	});
 };
 
+const verifyGithubOauthToken = async (
+	idToken: string
+): Promise<OauthUser | null> => {
+	try {
+		const { data } = await axios.get('https://api.github.com/user', {
+			headers: {
+				Authorization: `Bearer ${idToken}`,
+			},
+		});
+
+		return { email: data.email, id: data.id, name: data.name };
+	} catch (err) {
+		logger.error(err);
+		return null;
+	}
+};
+
 const upsertOauthAccount = async (
 	req: Request,
 	provider: OauthProvider,
-	decodedPayload: DecodedPayload
+	decodedPayload: OauthUser
 ) => {
 	try {
 		let user: Account | null;
@@ -211,7 +245,7 @@ const upsertOauthAccount = async (
 			where: {
 				provider_subject: {
 					provider,
-					subject: decodedPayload.sub!,
+					subject: decodedPayload.id,
 				},
 			},
 		});
@@ -224,10 +258,10 @@ const upsertOauthAccount = async (
 						UserOauthCredential: {
 							create: {
 								provider,
-								subject: decodedPayload.sub!,
+								subject: decodedPayload.id,
 								email: decodedPayload.email,
-								firstName: decodedPayload.given_name,
-								lastName: decodedPayload.family_name,
+								firstName: decodedPayload.firstName,
+								lastName: decodedPayload.lastName,
 							},
 						},
 					},
@@ -246,10 +280,10 @@ const upsertOauthAccount = async (
 				data: {
 					provider,
 					accountId: req.user.id,
-					subject: decodedPayload.sub!,
+					subject: decodedPayload.id,
 					email: decodedPayload.email,
-					firstName: decodedPayload.given_name,
-					lastName: decodedPayload.family_name,
+					firstName: decodedPayload.firstName,
+					lastName: decodedPayload.lastName,
 				},
 			});
 			return { error: false, user: req.user };
@@ -298,12 +332,14 @@ const oauthStrategyVerifyHandler = async (
 ) => {
 	const idToken = params.id_token as string;
 
-	let decodedPayload: DecodedPayload | null | undefined;
+	let decodedPayload: OauthUser | null | undefined;
 
 	if (provider === 'facebook') {
 		decodedPayload = await verifyFacebookOauthToken(idToken);
 	} else if (provider === 'google') {
 		decodedPayload = await verifyGoogleOauthToken(idToken);
+	} else if (provider === 'github') {
+		decodedPayload = await verifyGithubOauthToken(idToken);
 	}
 
 	if (!decodedPayload) {

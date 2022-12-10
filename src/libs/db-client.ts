@@ -1,15 +1,12 @@
 import { PrismaClient } from '@prisma/client';
+import constants from '../resources/constants';
 
 const dbClient = new PrismaClient({
-	errorFormat: ['production', 'staging'].includes(process.env.NODE_ENV ?? '')
-		? 'colorless'
-		: 'pretty',
+	errorFormat: constants.isProduction ? 'colorless' : 'pretty',
 	log: [
 		{
 			emit: 'stdout',
-			level: ['production', 'staging'].includes(process.env.NODE_ENV ?? '')
-				? 'error'
-				: 'query',
+			level: constants.isProduction ? 'error' : 'query',
 		},
 	],
 });

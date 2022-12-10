@@ -12,6 +12,7 @@ import redisClient from './libs/redis-client';
 import initAppRoutes from './router/init-app-routes';
 import { pinoConsoleTransportConfig, pinoSentryStream } from './libs/logger';
 import oauthHelpers from './helpers/passport-helpers';
+import constants from './resources/constants';
 
 const RedisStore = connectRedis(expressSession);
 const app = express();
@@ -35,7 +36,7 @@ app.use(
 			ttl: 1000 * 60 * 60 * 24 * 30,
 		}),
 		cookie: {
-			secure: ['production', 'staging'].includes(process.env.NODE_ENV ?? ''),
+			secure: constants.isProduction,
 			httpOnly: true,
 			signed: false,
 			sameSite: 'lax', // csrf
@@ -58,12 +59,8 @@ app.use(hpp());
 
 app.use(
 	pinoHttp(
-		['production', 'staging'].includes(process.env.SENTRY_ENVIRONMENT ?? '')
-			? {}
-			: pinoConsoleTransportConfig,
-		['production', 'staging'].includes(process.env.SENTRY_ENVIRONMENT ?? '')
-			? pinoSentryStream
-			: undefined
+		constants.isProductionSentry ? {} : pinoConsoleTransportConfig,
+		constants.isProductionSentry ? pinoSentryStream : undefined
 	)
 );
 

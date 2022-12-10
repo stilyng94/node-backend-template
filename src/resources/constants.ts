@@ -1,3 +1,7 @@
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 export default {
 	resetPasswordUrl: 'reset-password',
 	prefix: {
@@ -12,4 +16,8 @@ export default {
 		githubAuthorizationURL: 'https://github.com/login/oauth/authorize',
 		githubTokenURL: 'https://github.com/login/oauth/access_token',
 	},
+	isProduction: ['production', 'staging'].includes(process.env.NODE_ENV ?? ''),
+	isProductionSentry: ['production', 'staging'].includes(
+		process.env.SENTRY_ENVIRONMENT ?? ''
+	),
 };

@@ -2,6 +2,7 @@ import pino, { Logger, LoggerOptions } from 'pino';
 import { createWriteStream } from 'pino-sentry';
 
 import dotenv from 'dotenv';
+import constants from '../resources/constants';
 
 dotenv.config();
 
@@ -34,11 +35,7 @@ function devLogger(): Logger {
 }
 
 function logger(): Logger {
-	return ['production', 'staging'].includes(
-		process.env.SENTRY_ENVIRONMENT ?? ''
-	)
-		? prodLogger()
-		: devLogger();
+	return constants.isProductionSentry ? prodLogger() : devLogger();
 }
 
 export default logger();

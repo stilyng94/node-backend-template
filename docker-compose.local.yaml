@@ -41,6 +41,23 @@ services:
     environment:
       - PGDATA=/var/lib/postgresql/data/pgdata
 
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    container_name: worker
+    restart: unless-stopped
+    volumes:
+      - ./src:/usr/app/src
+      - ./node_modules:/usr/app/node_modules
+      - ./package.json:/usr/app/package.json
+      - ./views:/usr/app/views
+    depends_on:
+      - db
+      - redis
+    command: ['/bin/bash', '-c', './entrypoint.sh; pnpm worker:dev']
+
 volumes:
   pgdata:
   redisLocal:

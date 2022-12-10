@@ -30,4 +30,4 @@ RUN chmod +x ./entrypoint.sh && chown node:node /usr/app
 USER node
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["/bin/bash", "-c", "./entrypoint_dev.sh; yarn dev"]
+CMD ["/bin/bash", "-c", "./entrypoint_dev.sh; pnpm dev"]

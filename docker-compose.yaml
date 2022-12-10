@@ -20,7 +20,6 @@ services:
       - db
       - redis
 
-
   redis:
     image: bitnami/redis@sha256:76d250e94bd9d9315a807e8a45adc48091927802d54110187cbaee98a59bc4f1
     env_file: .env
@@ -29,7 +28,7 @@ services:
     ports:
       - '7379:6379'
     # volumes:
-    #   - './runtime/bitnami/redis/data:/bitnami/redis/data'
+    #   - 'redisLocal:/bitnami/redis/data'
 
   db:
     image: postgres:14-alpine
@@ -42,6 +41,18 @@ services:
       - '6432:5432'
     environment:
       - PGDATA=/var/lib/postgresql/data/pgdata
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    container_name: worker
+    restart: unless-stopped
+    depends_on:
+      - db
+      - redis
+    command: ['/bin/bash', '-c', './entrypoint.sh; pnpm worker']
 
 volumes:
   pgdata:

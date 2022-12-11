@@ -94,7 +94,7 @@ const localStrategy = new LocalStrategy(
 				await routeRateLimiter.delete(userNameIpKey!);
 			}
 
-			return cb(null, loginResult.user);
+			return cb(null, loginResult.user?.id);
 		}
 		// linking
 		await authHelpers.createUser(email, password, req.user.id);
@@ -104,18 +104,22 @@ const localStrategy = new LocalStrategy(
 
 const initializePassport = (app: Application) => {
 	app.use(passport.initialize());
+	if (process.env.USE_SESSION) {
+		app.use(passport.session());
 
-	passport.serializeUser((user, cb) => {
-		return cb(null, {
-			id: user.id,
+		passport.serializeUser((user, cb) => {
+			return cb(null, {
+				id: user.id,
+			});
 		});
-	});
-	passport.deserializeUser((user, cb) => {
-		if (user) {
-			return cb(null, user as Express.User);
-		}
-		return cb(new NotAuthorizedError());
-	});
+		passport.deserializeUser((user, cb) => {
+			if (user) {
+				return cb(null, user as Express.User);
+			}
+			return cb(new NotAuthorizedError());
+		});
+	}
+
 	passport.use('facebook', facebookOAuth2Strategy);
 	passport.use('local', localStrategy);
 	passport.use('google', googleOAuth2Strategy);

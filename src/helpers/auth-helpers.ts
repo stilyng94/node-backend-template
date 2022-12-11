@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { Account, OauthProvider } from '@prisma/client';
+import { Account, OauthProvider, UserLocalCredential } from '@prisma/client';
 import { Request } from 'express';
 import { VerifyCallback } from 'passport-oauth2';
 import jsonwebtoken, { JwtPayload } from 'jsonwebtoken';
@@ -141,6 +141,7 @@ const createUser = async (
 ) => {
 	const hashedPassword = await hashPassword(password);
 	let info = null;
+	let user: UserLocalCredential | null;
 
 	// check if an oauth account has same email
 	const existOauthAccount = await dbClient.userOauthCredential.findFirst({
@@ -150,30 +151,41 @@ const createUser = async (
 		info = `Email was already used to login with ${existOauthAccount.provider}`;
 	}
 
-	const user = await dbClient.userLocalCredential.create({
-		data: {
-			email,
-			password: hashedPassword,
-			Account: { connectOrCreate: { create: {}, where: { id: accountId } } },
-		},
-	});
+	if (accountId) {
+		user = await dbClient.userLocalCredential.create({
+			data: {
+				email,
+				password: hashedPassword,
+				Account: { connect: { id: accountId } },
+			},
+		});
+	} else {
+		user = await dbClient.userLocalCredential.create({
+			data: {
+				email,
+				password: hashedPassword,
+				Account: { create: {} },
+			},
+		});
+	}
 	return { user, info };
 };
 
 const loginUser = async (email: string, password: string) => {
 	const user = await dbClient.userLocalCredential.findUnique({
 		where: { email },
+		include: { Account: true },
 	});
 	const verified = await verifyPassword(password, user?.password);
 
-	if (!verified) {
+	if (!verified || !user) {
 		return {
 			error: true,
 			errorMessage:
 				'Invalid login credentials. Remember that password is case-sensitive. Please try again',
 		};
 	}
-	return { error: false, user };
+	return { error: false, user: user.Account };
 };
 
 const sendResetPasswordMail = async (email: string, userId: string) => {
@@ -251,7 +263,7 @@ const upsertOauthAccount = async (
 		});
 
 		if (!oAuthAccount) {
-			if (!req.user) {
+			if (!req.user?.id) {
 				//! New account and oauth account => SIGNUP
 				user = await dbClient.account.create({
 					data: {

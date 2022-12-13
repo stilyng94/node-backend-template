@@ -11,30 +11,30 @@ datasource db {
 }
 
 model UserLocalCredential {
-  id            String    @id @default(cuid())
-  email         String    @unique
+  id            String   @id @default(cuid())
+  email         String   @unique
   password      String
-  emailVerified Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  Account       Account[]
+  emailVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  Account       Account  @relation(fields: [accountId], references: [id])
+  accountId     String
 }
 
 model Account {
-  id                    String                @id @default(cuid())
-  userLocalCredential   UserLocalCredential?  @relation(fields: [userLocalCredentialId], references: [id])
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
-  currentLoginDevice    String?
-  lastLoginDevice       String?
-  lastLoginIp           String?
-  currentLoginIp        String?
-  loginCount            Int                   @default(0)
-  lastLoginOn           DateTime?
-  currentLoginOn        DateTime?
-  last_password_reset   DateTime?
-  userLocalCredentialId String?
-  UserOauthCredential   UserOauthCredential[]
+  id                  String                @id @default(cuid())
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  currentLoginDevice  String?
+  lastLoginDevice     String?
+  lastLoginIp         String?
+  currentLoginIp      String?
+  loginCount          Int                   @default(0)
+  lastLoginOn         DateTime?
+  currentLoginOn      DateTime?
+  last_password_reset DateTime?
+  UserOauthCredential UserOauthCredential[]
+  UserLocalCredential UserLocalCredential[]
 }
 
 model UserOauthCredential {

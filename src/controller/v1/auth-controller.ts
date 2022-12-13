@@ -4,6 +4,7 @@ import authHelpers from '../../helpers/auth-helpers';
 import dbClient from '../../libs/db-client';
 import logger from '../../libs/logger';
 import routeRateLimiter from '../../libs/rate-limit';
+import jwtUtils from '../../utils/jwt-utils';
 
 async function newAccount(req: Request, res: Response) {
 	try {
@@ -25,8 +26,15 @@ async function newAccount(req: Request, res: Response) {
 	}
 }
 
-async function loginHandler(_: Request, res: Response) {
-	return res.status(200).json({ success: true });
+async function loginHandler(req: Request, res: Response) {
+	const jsonResponse: { success: boolean; token?: string } = {
+		success: true,
+	};
+	if (!process.env.USE_SESSION) {
+		const token = jwtUtils.createAUthToken(req.user!.id);
+		jsonResponse.token = token;
+	}
+	return res.status(200).json(jsonResponse);
 }
 
 async function logout(req: Request, res: Response, next: NextFunction) {
@@ -127,10 +135,6 @@ async function submitPasswordRecovery(
 	}
 }
 
-async function oAuthHandler(req: Request, res: Response) {
-	return res.status(200).json({ success: true });
-}
-
 async function unlinkAccount(req: Request, res: Response, next: NextFunction) {
 	try {
 		const { strategy, strategyId } = req.query;
@@ -156,7 +160,6 @@ export default {
 	beginPasswordRecovery,
 	submitPasswordRecovery,
 	logout,
-	oAuthHandler,
 	unlinkAccount,
 };
 

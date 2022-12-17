@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import config from '../../config';
 import MailService from './mail-service';
 
 /**
@@ -11,7 +12,7 @@ import MailService from './mail-service';
 class EtherealMailService extends MailService {
 	// eslint-disable-next-line class-methods-use-this
 	protected createTransporter(): nodemailer.Transporter<SMTPTransport.SentMessageInfo> {
-		const port = parseInt(process.env.SMTP_PORT ?? '465', 10);
+		const port = config.SMTP_PORT;
 		const secure = port === 465; // true for 465, false for other ports eg 587
 
 		const options: SMTPTransport.Options = {
@@ -19,8 +20,8 @@ class EtherealMailService extends MailService {
 			port,
 			secure,
 			auth: {
-				user: process.env.ETHEREAL_USERNAME,
-				pass: process.env.ETHEREAL_PASSWORD,
+				user: config.ETHEREAL_USERNAME,
+				pass: config.ETHEREAL_PASSWORD,
 			},
 		};
 		return nodemailer.createTransport(options);

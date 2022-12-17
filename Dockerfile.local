@@ -25,7 +25,7 @@ COPY . .
 EXPOSE ${PORT}
 EXPOSE 9229
 
-RUN chmod +x ./entrypoint.sh && chown node:node /usr/app
+RUN chmod +x ./entrypoint_dev.sh && chown node:node /usr/app
 
 USER node
 

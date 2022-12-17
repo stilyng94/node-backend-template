@@ -13,8 +13,8 @@ import initAppRoutes from './router/init-app-routes';
 import { pinoConsoleTransportConfig, pinoSentryStream } from './libs/logger';
 import oauthHelpers from './helpers/passport-helpers';
 import constants from './resources/constants';
-import jwtMiddleware from './middleware/jwt-middleware';
 import BadRequestError from './errors/bad-request-error';
+import config from './config';
 
 const RedisStore = connectRedis(expressSession);
 const app = express();
@@ -27,14 +27,14 @@ app.use(helmet());
 app.use(
 	cors({
 		optionsSuccessStatus: 200,
-		credentials: !!process.env.USE_SESSION,
+		credentials: !!config.USE_SESSION,
 	})
 );
 
 app.use(
-	process.env.USE_SESSION
+	config.USE_SESSION
 		? expressSession({
-				secret: process.env.SECRET ?? 'testing',
+				secret: config.SECRET,
 				name: 'sid',
 				resave: false,
 				saveUninitialized: false,
@@ -55,7 +55,7 @@ app.use(
 );
 
 app.use((req, _, next) => {
-	if (process.env.USE_SESSION && !req.session) {
+	if (config.USE_SESSION && !req.session) {
 		return next(new BadRequestError('Session not initialized'));
 	}
 	return next();
@@ -76,8 +76,6 @@ app.use(
 oauthHelpers.initializePassport(app);
 
 app.use(express.static(path.join('public')));
-
-app.use(process.env.USE_SESSION ? (_, __, next) => next() : jwtMiddleware);
 
 initAppRoutes(app);
 

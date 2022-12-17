@@ -2,20 +2,21 @@ import { Application, Request } from 'express';
 import passport from 'passport';
 import OAuth2Strategy, { VerifyCallback } from 'passport-oauth2';
 import { Strategy as LocalStrategy } from 'passport-local';
-import NotAuthorizedError from '../errors/not-authorized-error';
 import authHelpers from './auth-helpers';
 import routeRateLimiter from '../libs/rate-limit';
 import constants from '../resources/constants';
+import NotAuthenticatedError from '../errors/not-authenticated-error';
+import config from '../config';
 
 const facebookOAuth2Strategy = new OAuth2Strategy(
 	{
 		state: true, // only use when using session.
 		authorizationURL: constants.urls.facebookAuthorizationURL,
 		tokenURL: constants.urls.facebookTokenURL,
-		clientID: process.env.FACEBOOK_CLIENT_ID ?? 'clientId',
-		clientSecret: process.env.FACEBOOK_CLIENT_SECRET ?? 'clientSecret',
+		clientID: config.FACEBOOK_CLIENT_ID,
+		clientSecret: config.FACEBOOK_CLIENT_SECRET,
 		scope: ['email', 'public_profile'],
-		callbackURL: `${process.env.BASE_URL}/api/v1/auth/facebook-auth/callback`,
+		callbackURL: `${config.BASE_URL}/api/v1/auth/facebook-auth/callback`,
 		passReqToCallback: true,
 	},
 	async (
@@ -35,10 +36,10 @@ const googleOAuth2Strategy = new OAuth2Strategy(
 		state: true, // only use when using session.
 		authorizationURL: constants.urls.googleAuthorizationURL,
 		tokenURL: constants.urls.googleTokenURL,
-		clientID: process.env.GOOGLE_CLIENT_ID ?? 'clientId',
-		clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? 'clientSecret',
+		clientID: config.GOOGLE_CLIENT_ID,
+		clientSecret: config.GOOGLE_CLIENT_SECRET,
 		scope: ['email', 'profile'],
-		callbackURL: `${process.env.BASE_URL}/api/v1/auth/google-auth/callback`,
+		callbackURL: `${config.BASE_URL}/api/v1/auth/google-auth/callback`,
 		passReqToCallback: true,
 	},
 	async (
@@ -58,10 +59,10 @@ const githubOAuth2Strategy = new OAuth2Strategy(
 		state: true, // only use when using session.
 		authorizationURL: constants.urls.githubAuthorizationURL,
 		tokenURL: constants.urls.githubTokenURL,
-		clientID: process.env.GOOGLE_CLIENT_ID ?? 'clientId',
-		clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? 'clientSecret',
+		clientID: config.GITHUB_CLIENT_ID,
+		clientSecret: config.GITHUB_CLIENT_SECRET,
 		scope: ['user:email'],
-		callbackURL: `${process.env.BASE_URL}/api/v1/auth/github-auth/callback`,
+		callbackURL: `${config.BASE_URL}/api/v1/auth/github-auth/callback`,
 		passReqToCallback: true,
 	},
 	async (
@@ -83,18 +84,18 @@ const localStrategy = new LocalStrategy(
 
 		const resUsernameAndIP = await routeRateLimiter.get(userNameIpKey!);
 
-		if (!req.user) {
+		if (!req.user?.id) {
 			const loginResult = await authHelpers.loginUser(email, password);
 
 			if (loginResult.error) {
 				await routeRateLimiter.consume(userNameIpKey!);
-				return cb(new NotAuthorizedError(loginResult.errorMessage));
+				return cb(new NotAuthenticatedError(loginResult.errorMessage));
 			}
 			if (resUsernameAndIP !== null && resUsernameAndIP.consumedPoints > 0) {
 				await routeRateLimiter.delete(userNameIpKey!);
 			}
 
-			return cb(null, loginResult.user?.id);
+			return cb(null, { id: loginResult.user?.id });
 		}
 		// linking
 		await authHelpers.createUser(email, password, req.user.id);
@@ -104,7 +105,7 @@ const localStrategy = new LocalStrategy(
 
 const initializePassport = (app: Application) => {
 	app.use(passport.initialize());
-	if (process.env.USE_SESSION) {
+	if (config.USE_SESSION) {
 		app.use(passport.session());
 
 		passport.serializeUser((user, cb) => {
@@ -116,7 +117,7 @@ const initializePassport = (app: Application) => {
 			if (user) {
 				return cb(null, user as Express.User);
 			}
-			return cb(new NotAuthorizedError());
+			return cb(new NotAuthenticatedError());
 		});
 	}
 

@@ -16,16 +16,15 @@ import cryptoUtils from '../utils/crypto-utils';
 import logger from '../libs/logger';
 import routeRateLimiter from '../libs/rate-limit';
 import OauthUser from '../interfaces/oauth-user';
+import config from '../config';
 
 const verifyGoogleOauthToken = async (
 	token: string
 ): Promise<OauthUser | null> => {
-	const client = new GoogleOAuth2Client(
-		process.env.GOOGLE_CLIENT_ID ?? 'clientId'
-	);
+	const client = new GoogleOAuth2Client(config.GOOGLE_CLIENT_ID);
 	const ticket = await client.verifyIdToken({
 		idToken: token,
-		audience: process.env.GOOGLE_CLIENT_ID ?? 'clientId',
+		audience: config.GOOGLE_CLIENT_ID,
 	});
 	const metadata = ticket.getPayload();
 	if (!metadata) {
@@ -82,7 +81,7 @@ async function generateResetPasswordUrl(userId: string): Promise<string> {
 		userId
 	);
 
-	return `${process.env.FRONTEND_URL}/${constants.resetPasswordUrl}/${secret}`;
+	return `${config.FRONTEND_URL}/${constants.resetPasswordUrl}/${secret}`;
 }
 
 async function decodeResetPasswordToken(token: string): Promise<string> {
@@ -98,7 +97,7 @@ async function decodeResetPasswordToken(token: string): Promise<string> {
 
 const sendNewAccountMail = async (email: string) => {
 	const emailObj: IEmailObj = {
-		from: process.env.FROM_ADDRESS ?? 'noreply@mail.com',
+		from: config.FROM_ADDRESS,
 		subject: 'New Account',
 		to: [email],
 	};
@@ -141,7 +140,11 @@ const createUser = async (
 ) => {
 	const hashedPassword = await hashPassword(password);
 	let info = null;
-	let user: UserLocalCredential | null;
+	let user:
+		| (UserLocalCredential & {
+				Account: Account;
+		  })
+		| null;
 
 	// check if an oauth account has same email
 	const existOauthAccount = await dbClient.userOauthCredential.findFirst({
@@ -158,6 +161,7 @@ const createUser = async (
 				password: hashedPassword,
 				Account: { connect: { id: accountId } },
 			},
+			include: { Account: true },
 		});
 	} else {
 		user = await dbClient.userLocalCredential.create({
@@ -166,9 +170,10 @@ const createUser = async (
 				password: hashedPassword,
 				Account: { create: {} },
 			},
+			include: { Account: true },
 		});
 	}
-	return { user, info };
+	return { user: user.Account, info };
 };
 
 const loginUser = async (email: string, password: string) => {
@@ -190,7 +195,7 @@ const loginUser = async (email: string, password: string) => {
 
 const sendResetPasswordMail = async (email: string, userId: string) => {
 	const emailObj: IEmailObj = {
-		from: process.env.FROM_ADDRESS ?? 'noreply@mail.com',
+		from: config.FROM_ADDRESS,
 		subject: 'Reset Password',
 		to: [email],
 	};
@@ -200,7 +205,7 @@ const sendResetPasswordMail = async (email: string, userId: string) => {
 
 const sendResetPasswordSuccessMail = async (email: string) => {
 	const emailObj: IEmailObj = {
-		from: process.env.FROM_ADDRESS ?? 'noreply@mail.com',
+		from: config.FROM_ADDRESS,
 		subject: 'Reset Password Successful',
 		to: [email],
 	};
@@ -303,7 +308,7 @@ const upsertOauthAccount = async (
 
 		//! when oauth exists
 
-		if (req.user) {
+		if (req.user?.id) {
 			//! Existing OAUTH & OAUTH LINKING
 			// Check if already linked
 			if (oAuthAccount.accountId === req.user.id) {

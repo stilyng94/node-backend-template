@@ -1,24 +1,26 @@
 import { NextFunction, Request, Response } from 'express';
-import jwtUtils from '../utils/jwt-utils';
+import jwtHelpers from '../helpers/jwt-helpers';
 
-function jwtMiddleware(req: Request, _: Response, next: NextFunction) {
-	const authorizationHeader = req.headers.authorization;
-	if (!authorizationHeader) {
+async function accessTokenMiddleware(
+	req: Request,
+	_: Response,
+	next: NextFunction
+) {
+	try {
+		const token = jwtHelpers.getTokenFromHeader(req);
+		if (!token) {
+			return next();
+		}
+		const payload = await jwtHelpers.verifyAccessToken({ token });
+		if (!payload) {
+			return next();
+		}
+
+		req.user = { id: payload.userId };
+		return next();
+	} catch (error) {
 		return next();
 	}
-
-	const token = authorizationHeader.split(' ').at(-1);
-	if (!token) {
-		return next();
-	}
-
-	const payload = jwtUtils.verifyAUthToken(token);
-	if (!payload) {
-		return next();
-	}
-
-	req.user = { id: payload };
-	return next();
 }
 
-export default jwtMiddleware;
+export default { accessTokenMiddleware };

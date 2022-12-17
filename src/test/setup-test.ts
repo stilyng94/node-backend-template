@@ -1,4 +1,3 @@
-import dotenv from 'dotenv';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import request from 'supertest';
 import dbClient from '../libs/db-client';
@@ -27,8 +26,6 @@ const clearDB = async () => {
 };
 
 beforeAll(async () => {
-	dotenv.config();
-
 	await redisClient.connect();
 	await dbClient.$connect();
 	await clearDB();

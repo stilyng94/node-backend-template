@@ -1,10 +1,11 @@
 import express from 'express';
 import passport from 'passport';
+import config from '../../config';
 import authController from '../../controller/v1/auth-controller';
 import authMiddleware from '../../middleware/auth-middleware';
+import jwtMiddleware from '../../middleware/jwt-middleware';
 import rateLimiterMiddleware from '../../middleware/rate-limiter-middleware';
 import validateRequestMiddleWare from '../../middleware/validate-request-middleware';
-import jwtUtils from '../../utils/jwt-utils';
 import authValidator from '../../validators/auth-validator';
 
 const authRouter = express.Router();
@@ -23,7 +24,7 @@ authRouter.post(
 	authValidator.loginValidator,
 	validateRequestMiddleWare,
 	passport.authenticate('local', {
-		session: !!process.env.USE_SESSION,
+		session: !!config.USE_SESSION,
 	}),
 	authController.loginHandler
 );
@@ -62,7 +63,7 @@ authRouter.get(
 authRouter.get(
 	'/facebook-auth/callback',
 	passport.authenticate('facebook', {
-		session: !!process.env.USE_SESSION,
+		session: !!config.USE_SESSION,
 	}),
 	authController.loginHandler
 );
@@ -76,7 +77,7 @@ authRouter.get(
 authRouter.get(
 	'/google-auth/callback',
 	passport.authenticate('google', {
-		session: !!process.env.USE_SESSION,
+		session: !!config.USE_SESSION,
 	}),
 	authController.loginHandler
 );
@@ -85,14 +86,14 @@ authRouter.get(
 	'/connect/google',
 	authMiddleware,
 	passport.authorize('google', {
-		session: !!process.env.USE_SESSION,
+		session: !!config.USE_SESSION,
 	})
 );
 authRouter.get(
 	'/connect/facebook',
 	authMiddleware,
 	passport.authorize('facebook', {
-		session: !!process.env.USE_SESSION,
+		session: !!config.USE_SESSION,
 	})
 );
 authRouter.post(
@@ -101,21 +102,24 @@ authRouter.post(
 	authValidator.newAccountValidator,
 	validateRequestMiddleWare,
 	passport.authenticate('local', {
-		session: !!process.env.USE_SESSION,
+		session: !!config.USE_SESSION,
 	}),
 	authController.loginHandler
 );
 
 authRouter.delete('/unlink', authMiddleware, authController.unlinkAccount);
 
-authRouter.all('/logout', authController.logout);
+authRouter.post('/logout', authController.logout);
+authRouter.post('/logout-all', authController.logoutAllSessions);
+authRouter.post('/refresh-token', authController.refreshTokenHandler);
 
-authRouter.post('/loginz', (_, res) => {
-	const jwt = jwtUtils.createAUthToken('12345');
-	return res.status(200).json(jwt);
-});
-authRouter.all('/secure', authMiddleware, (_, res) => {
-	return res.sendStatus(200);
-});
+authRouter.all(
+	'/secure',
+	jwtMiddleware.accessTokenMiddleware,
+	authMiddleware,
+	(_, res) => {
+		return res.sendStatus(200);
+	}
+);
 
 export default authRouter;

@@ -1,13 +1,11 @@
 import pino, { Logger, LoggerOptions } from 'pino';
 import { createWriteStream } from 'pino-sentry';
 
-import dotenv from 'dotenv';
 import constants from '../resources/constants';
-
-dotenv.config();
+import config from '../config';
 
 export const pinoSentryStream = createWriteStream({
-	dsn: process.env.SENTRY_DSN,
+	dsn: config.SENTRY_DSN,
 	serverName: process.env.APP_NAME ?? 'API',
 	level: 'warning',
 });
@@ -15,7 +13,7 @@ export const pinoSentryStream = createWriteStream({
 export const pinoConsoleTransportConfig: LoggerOptions = {
 	timestamp: true,
 	transport:
-		process.env.NODE_ENV !== 'test'
+		config.NODE_ENV !== 'test'
 			? {
 					target: 'pino-pretty',
 					options: {

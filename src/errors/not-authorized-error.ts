@@ -1,7 +1,7 @@
 import CustomError from './custom-error';
 
 class NotAuthorizedError extends CustomError {
-	statusCode = 401;
+	statusCode = 403;
 
 	constructor(public message = 'Not authorized') {
 		super(message);

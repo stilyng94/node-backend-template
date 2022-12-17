@@ -4,13 +4,14 @@ import authHelpers from '../../helpers/auth-helpers';
 import dbClient from '../../libs/db-client';
 import logger from '../../libs/logger';
 import routeRateLimiter from '../../libs/rate-limit';
-import jwtUtils from '../../utils/jwt-utils';
+import jwtHelpers from '../../helpers/jwt-helpers';
+import config from '../../config';
 
 async function newAccount(req: Request, res: Response) {
 	try {
 		const { email, password } = req.body;
 		await authHelpers.createUser(email, password);
-		authHelpers.sendNewAccountMail(email);
+		await authHelpers.sendNewAccountMail(email);
 		return res.status(200).json({
 			success: true,
 			message:
@@ -27,22 +28,34 @@ async function newAccount(req: Request, res: Response) {
 }
 
 async function loginHandler(req: Request, res: Response) {
-	const jsonResponse: { success: boolean; token?: string } = {
+	const jsonResponse: {
+		success: boolean;
+		accessToken?: string;
+		refreshToken?: string;
+	} = {
 		success: true,
 	};
-	if (!process.env.USE_SESSION) {
-		const token = jwtUtils.createAUthToken(req.user!.id);
-		jsonResponse.token = token;
+	if (!config.USE_SESSION) {
+		const { accessToken, refreshToken } = await jwtHelpers.generateAuthTokens({
+			userId: req.user!.id,
+		});
+
+		jsonResponse.accessToken = accessToken;
+		jsonResponse.refreshToken = refreshToken;
 	}
 	return res.status(200).json(jsonResponse);
 }
 
 async function logout(req: Request, res: Response, next: NextFunction) {
 	try {
-		return req.session.destroy(() => {
-			res.clearCookie('sid');
-			return res.status(200).json({ success: true });
-		});
+		if (!config.USE_SESSION) {
+			await jwtHelpers.jwtLogoutHandler(req);
+		} else {
+			req.session.destroy(() => {
+				res.clearCookie('sid');
+			});
+		}
+		return res.status(200).json({ success: true });
 	} catch (error) {
 		return next();
 	}
@@ -153,6 +166,40 @@ async function unlinkAccount(req: Request, res: Response, next: NextFunction) {
 	}
 }
 
+async function refreshTokenHandler(
+	req: Request,
+	res: Response,
+	next: NextFunction
+) {
+	try {
+		const accessToken = await jwtHelpers.refreshAccessToken(req);
+		if (!accessToken) {
+			return res.status(400).json({ success: false });
+		}
+		return res.status(200).json({ accessToken, success: true });
+	} catch (error) {
+		return next(error);
+	}
+}
+
+async function logoutAllSessions(
+	req: Request,
+	res: Response,
+	next: NextFunction
+) {
+	try {
+		if (!config.USE_SESSION) {
+			await jwtHelpers.jwtLogoutHandler(req, true);
+		} else {
+			req.session.destroy(() => {
+				res.clearCookie('sid');
+			});
+		}
+		return res.status(200).json({ success: true });
+	} catch (error) {
+		return next();
+	}
+}
 export default {
 	changePassword,
 	newAccount,
@@ -161,6 +208,6 @@ export default {
 	submitPasswordRecovery,
 	logout,
 	unlinkAccount,
+	refreshTokenHandler,
+	logoutAllSessions,
 };
-
-// TODO: Require Re-authentication for Sensitive Features

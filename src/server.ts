@@ -1,10 +1,11 @@
 import http from 'http';
 import app from './app';
+import config from './config';
 import logger from './libs/logger';
 
 const server = http.createServer(app);
 
-const port = parseInt(process.env.PORT ?? '5000', 10);
+const port = config.PORT;
 
 server.on('listening', () => logger.info({}, `App started on port ${port}`));
 

@@ -1,10 +1,8 @@
 import { Worker } from 'bullmq';
-import dotenv from 'dotenv';
 import path from 'path';
+import config from './config';
 import logger from './libs/logger';
 import constants from './resources/constants';
-
-dotenv.config();
 
 const processorFile = constants.isProduction
 	? path.join(__dirname, 'helpers', 'worker-processor.js')
@@ -13,11 +11,11 @@ const processorFile = constants.isProduction
 const worker = new Worker('demo', processorFile, {
 	concurrency: 5,
 	connection: {
-		host: process.env.REDIS_HOST,
-		port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
+		host: config.REDIS_HOST,
+		port: config.REDIS_PORT,
 		lazyConnect: true,
-		password: process.env.REDIS_PASSWORD,
-		username: process.env.REDIS_USERNAME,
+		password: config.REDIS_PASSWORD,
+		username: config.REDIS_USERNAME,
 		enableOfflineQueue: false,
 	},
 });

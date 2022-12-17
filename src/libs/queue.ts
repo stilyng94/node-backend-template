@@ -1,13 +1,14 @@
 import { Queue } from 'bullmq';
+import config from '../config';
 
 const queue = new Queue('demo', {
 	defaultJobOptions: { removeOnComplete: { count: 10 } },
 	connection: {
-		host: process.env.REDIS_HOST,
-		port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
+		host: config.REDIS_HOST,
+		port: config.REDIS_PORT,
 		lazyConnect: true,
-		password: process.env.REDIS_PASSWORD,
-		username: process.env.REDIS_USERNAME,
+		password: config.REDIS_PASSWORD,
+		username: config.REDIS_USERNAME,
 		enableOfflineQueue: false,
 	},
 });

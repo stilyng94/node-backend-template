@@ -1,14 +1,12 @@
-import dotenv from 'dotenv';
 import { createTerminus } from '@godaddy/terminus';
 import server from './server';
 import logger from './libs/logger';
 import redisClient from './libs/redis-client';
 import dbClient from './libs/db-client';
 import queue from './libs/queue';
+import config from './config';
 
-dotenv.config();
-
-const port = parseInt(process.env.PORT ?? '5000', 10);
+const port = config.PORT;
 
 async function onSignal() {
 	// eslint-disable-next-line no-console

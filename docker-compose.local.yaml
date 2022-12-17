@@ -44,7 +44,7 @@ services:
   worker:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.local
     env_file: .env
     container_name: worker
     restart: unless-stopped
@@ -56,7 +56,7 @@ services:
     depends_on:
       - db
       - redis
-    command: ['/bin/bash', '-c', './entrypoint.sh; pnpm worker:dev']
+    command: ['/bin/bash', '-c', './entrypoint_dev.sh; pnpm worker:dev']
 
 volumes:
   pgdata:

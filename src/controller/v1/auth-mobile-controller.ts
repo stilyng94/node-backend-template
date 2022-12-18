@@ -1,0 +1,53 @@
+import { Request, Response, NextFunction } from 'express';
+import config from '../../config';
+import authHelpers from '../../helpers/auth-helpers';
+import jwtHelpers from '../../helpers/jwt-helpers';
+
+async function newOrConnectOauthAccount(
+	req: Request,
+	res: Response,
+	next: NextFunction
+) {
+	try {
+		const { provider, oauthUser } = req.body;
+		const { error, isNew, msg, user } = await authHelpers.upsertOauthAccount(
+			req,
+			provider,
+			oauthUser
+		);
+		if (error) {
+			return res.status(400).json({ success: false, message: msg });
+		}
+		if (isNew) {
+			// send email
+			await authHelpers.sendNewAccountMail(oauthUser.email);
+			return res.status(200).json({
+				success: true,
+				message:
+					'A link to activate your account has been emailed to the address provided',
+			});
+		}
+		const jsonResponse: {
+			success: boolean;
+			accessToken?: string;
+			refreshToken?: string;
+		} = {
+			success: true,
+		};
+		if (!config.USE_SESSION) {
+			const { accessToken, refreshToken } = await jwtHelpers.generateAuthTokens(
+				{
+					userId: user?.id,
+				}
+			);
+
+			jsonResponse.accessToken = accessToken;
+			jsonResponse.refreshToken = refreshToken;
+		}
+		return res.status(200).json(jsonResponse);
+	} catch (error) {
+		return next(error);
+	}
+}
+
+export default { newOrConnectOauthAccount };

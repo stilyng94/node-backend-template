@@ -3,7 +3,6 @@ import { checkSchema } from 'express-validator';
 const newAccountValidator = checkSchema(
 	{
 		email: {
-			notEmpty: {},
 			isEmail: {},
 			normalizeEmail: { options: { all_lowercase: true } },
 		},
@@ -33,7 +32,6 @@ const changePasswordValidator = checkSchema({
 		},
 	},
 	currentPassword: {
-		notEmpty: {},
 		custom: {
 			options(value, { req }) {
 				if (req.body.newPassword !== value) {
@@ -48,7 +46,6 @@ const changePasswordValidator = checkSchema({
 const beginPasswordRecoveryValidator = checkSchema(
 	{
 		email: {
-			notEmpty: {},
 			isEmail: {},
 			normalizeEmail: { options: { all_lowercase: true } },
 		},
@@ -73,12 +70,51 @@ const submitPasswordRecoveryValidator = checkSchema(
 const loginValidator = checkSchema(
 	{
 		email: {
-			notEmpty: {},
 			isEmail: {},
 			normalizeEmail: { options: { all_lowercase: true } },
 		},
 		password: {
 			notEmpty: {},
+		},
+	},
+	['body']
+);
+
+const mobileAuthValidator = checkSchema(
+	{
+		provider: {
+			notEmpty: {},
+			custom: {
+				options(value) {
+					if (['facebook', 'google', 'github'].includes(value)) {
+						return true;
+					}
+					throw new Error('The provided oauth provider is not yet supported');
+				},
+			},
+		},
+		'oauthUser.email': {
+			isEmail: {},
+			normalizeEmail: { options: { all_lowercase: true } },
+		},
+		'oauthUser.id': {
+			isString: {},
+		},
+		'oauthUser.name': {
+			optional: {},
+			isString: {},
+		},
+		'oauthUser.username': {
+			optional: {},
+			isString: {},
+		},
+		'oauthUser.firstName': {
+			optional: {},
+			isString: {},
+		},
+		'oauthUser.lastName': {
+			optional: {},
+			isString: {},
 		},
 	},
 	['body']
@@ -89,4 +125,5 @@ export default {
 	beginPasswordRecoveryValidator,
 	submitPasswordRecoveryValidator,
 	loginValidator,
+	mobileAuthValidator,
 };

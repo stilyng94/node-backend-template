@@ -13,7 +13,6 @@ const addCronJobValidator = checkSchema(
 			isString: {},
 		},
 		jobName: {
-			notEmpty: {},
 			isString: {},
 			custom: {
 				options(value) {

@@ -394,4 +394,5 @@ export default {
 	verifyPassword,
 	loginUser,
 	oauthStrategyVerifyHandler,
+	upsertOauthAccount,
 };

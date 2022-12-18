@@ -1,5 +1,8 @@
 import { parseEnv, port } from 'znv';
 import { z } from 'zod';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const url = z.string().url();
 const environment = z

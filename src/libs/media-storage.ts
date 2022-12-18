@@ -33,6 +33,8 @@ const acceptedMimeTypes = new Set([
 	'video/x-matroska',
 	'video/x-msvideo',
 	'audio/aac',
+	'application/msword', 
+  	'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 ]);
 
 /**

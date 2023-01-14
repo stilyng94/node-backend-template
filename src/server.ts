@@ -22,4 +22,5 @@ server.on('error', (error) => {
 			logger.error(error);
 	}
 });
+server.setTimeout(5000);
 export default server;

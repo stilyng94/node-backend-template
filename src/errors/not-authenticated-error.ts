@@ -1,11 +1,11 @@
 import CustomError from './custom-error';
 
 class NotAuthenticatedError extends CustomError {
-	statusCode = 401;
+	readonly statusCode = 401;
 
 	constructor(public message = 'Not authenticated') {
 		super(message);
-		Object.setPrototypeOf(this, NotAuthenticatedError.prototype);
+		Object.setPrototypeOf(this, new.target.prototype);
 	}
 
 	serializeErrors() {

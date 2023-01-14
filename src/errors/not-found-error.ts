@@ -5,12 +5,12 @@ import CustomError from './custom-error';
  * Error for unknown routes and data
  */
 class NotFoundError extends CustomError {
-	statusCode = 404;
+	readonly statusCode = 404;
 
 	constructor(req: Request) {
 		const message = `Route not found: ${req.originalUrl}`;
 		super(message);
-		Object.setPrototypeOf(this, NotFoundError.prototype);
+		Object.setPrototypeOf(this, new.target.prototype);
 	}
 
 	serializeErrors(): Array<{ message: string; field?: string }> {

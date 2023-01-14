@@ -22,5 +22,5 @@
 		"transpileOnly": true,
 		"files": true
 	},
-	"typeRoots": ["./src/types", "./node_modules/@types"]
+	"typeRoots": ["./src/@types", "./node_modules/@types"]
 }

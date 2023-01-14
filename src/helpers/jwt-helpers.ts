@@ -228,7 +228,7 @@ const jwtLogoutHandler = async (req: Request, clearAll?: boolean) => {
 		const userId = accessTokenPayload?.userId ?? refreshTokenPayload?.userId;
 
 		if (clearAll) {
-			await clearAllSessions(userId);
+			clearAllSessions(userId);
 		} else {
 			await clearCurrentSession(
 				userId,

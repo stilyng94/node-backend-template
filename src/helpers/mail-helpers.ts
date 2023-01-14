@@ -1,6 +1,6 @@
 import ejs from 'ejs';
 import path from 'path';
-import { IEmailObj } from '../interfaces/mail-interfaces';
+import { IBaseEmailInput } from '../interfaces/mail-interfaces';
 import logger from '../libs/logger';
 import EtherealMailService from '../service/mail/ethereal-mail-service';
 
@@ -19,7 +19,7 @@ const getRenderedTemplate = async (
 };
 
 const sendMail = async (
-	emailObj: IEmailObj,
+	emailObj: IBaseEmailInput,
 	template: string,
 	ctx: Record<string, unknown>
 ) => {
@@ -33,4 +33,30 @@ const sendMail = async (
 	}
 };
 
-export default { sendMail };
+const sendPromotionalMail = async (
+	emailObj: IBaseEmailInput,
+	template: string,
+	unsubscribeUrl: string,
+	ctx: Record<string, unknown>,
+	description?: string
+) => {
+	try {
+		const mailService = new EtherealMailService();
+		const generatedHtml = await getRenderedTemplate(template, ctx);
+
+		await mailService.sendPromotionalMail({
+			...emailObj,
+			html: generatedHtml,
+			list: {
+				Unsubscribe: {
+					url: unsubscribeUrl,
+					comment: description ?? 'Unsubscribe',
+				},
+			},
+		});
+	} catch (error) {
+		logger.error(error);
+	}
+};
+
+export default { sendMail, sendPromotionalMail };

@@ -1,9 +1,9 @@
-import { Attachment } from 'nodemailer/lib/mailer';
+import { Attachment, Options } from 'nodemailer/lib/mailer';
 
 /**
  * @description Base email interface
  */
-export interface IEmailObj {
+export interface IBaseEmailInput {
 	to: string[];
 	cc?: string[];
 	bcc?: string[];
@@ -12,4 +12,7 @@ export interface IEmailObj {
 	attachments?: Attachment[];
 }
 
-export type IEMailInput = IEmailObj & { html?: string };
+export type IEMailInput = IBaseEmailInput & Required<Pick<Options, 'html'>>;
+
+export type IPromotionalEMailInput = IEMailInput &
+	Required<Pick<Options, 'list'>>;

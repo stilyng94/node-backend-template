@@ -6,7 +6,7 @@ import jsonwebtoken, { JwtPayload } from 'jsonwebtoken';
 import { OAuth2Client as GoogleOAuth2Client } from 'google-auth-library';
 import JwksRsa from 'jwks-rsa';
 import axios from 'axios';
-import { IEmailObj } from '../interfaces/mail-interfaces';
+import { IBaseEmailInput } from '../interfaces/mail-interfaces';
 import dbClient from '../libs/db-client';
 import mailHelpers from './mail-helpers';
 import BadRequestError from '../errors/bad-request-error';
@@ -96,7 +96,7 @@ async function decodeResetPasswordToken(token: string): Promise<string> {
 }
 
 const sendNewAccountMail = async (email: string) => {
-	const emailObj: IEmailObj = {
+	const emailObj: IBaseEmailInput = {
 		from: config.FROM_ADDRESS,
 		subject: 'New Account',
 		to: [email],
@@ -194,7 +194,7 @@ const loginUser = async (email: string, password: string) => {
 };
 
 const sendResetPasswordMail = async (email: string, userId: string) => {
-	const emailObj: IEmailObj = {
+	const emailObj: IBaseEmailInput = {
 		from: config.FROM_ADDRESS,
 		subject: 'Reset Password',
 		to: [email],
@@ -204,7 +204,7 @@ const sendResetPasswordMail = async (email: string, userId: string) => {
 };
 
 const sendResetPasswordSuccessMail = async (email: string) => {
-	const emailObj: IEmailObj = {
+	const emailObj: IBaseEmailInput = {
 		from: config.FROM_ADDRESS,
 		subject: 'Reset Password Successful',
 		to: [email],

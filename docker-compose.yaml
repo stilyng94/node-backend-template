@@ -52,7 +52,7 @@ services:
     depends_on:
       - db
       - redis
-    command: ['/bin/bash', '-c', './entrypoint.sh; pnpm worker']
+    command: ['/bin/bash', '-c', 'pnpm worker']
 
 volumes:
   pgdata:

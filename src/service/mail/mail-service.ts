@@ -1,7 +1,10 @@
 import { Transporter, getTestMessageUrl } from 'nodemailer';
 import SESTransport from 'nodemailer/lib/ses-transport';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
-import { IEMailInput } from '../../interfaces/mail-interfaces';
+import {
+	IEMailInput,
+	IPromotionalEMailInput,
+} from '../../interfaces/mail-interfaces';
 import logger from '../../libs/logger';
 
 type MailResults = SESTransport.SentMessageInfo | SMTPTransport.SentMessageInfo;
@@ -42,6 +45,28 @@ abstract class MailService {
 	}
 
 	public async sendMail(mailInput: IEMailInput): Promise<MailResults | null> {
+		try {
+			const transporter = this.createTransporter();
+			const isReady = MailService.verifyTransporter(transporter);
+			if (!isReady) {
+				return null;
+			}
+			const result = await transporter.sendMail({
+				...mailInput,
+			});
+			const mailUrl = getTestMessageUrl(result);
+			logger.debug({}, 'Preview URL: ', mailUrl);
+			MailService.onRejectedHandler(result, mailInput);
+			return result;
+		} catch (error) {
+			logger.error(error);
+			return null;
+		}
+	}
+
+	public async sendPromotionalMail(
+		mailInput: IPromotionalEMailInput
+	): Promise<MailResults | null> {
 		try {
 			const transporter = this.createTransporter();
 			const isReady = MailService.verifyTransporter(transporter);

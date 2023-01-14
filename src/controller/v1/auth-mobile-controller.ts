@@ -18,22 +18,23 @@ async function newOrConnectOauthAccount(
 		if (error) {
 			return res.status(400).json({ success: false, message: msg });
 		}
-		if (isNew) {
-			// send email
-			await authHelpers.sendNewAccountMail(oauthUser.email);
-			return res.status(200).json({
-				success: true,
-				message:
-					'A link to activate your account has been emailed to the address provided',
-			});
-		}
+
 		const jsonResponse: {
 			success: boolean;
 			accessToken?: string;
 			refreshToken?: string;
+			message?: string;
 		} = {
 			success: true,
 		};
+
+		if (isNew) {
+			// send email
+			await authHelpers.sendNewAccountMail(oauthUser.email);
+			jsonResponse.message =
+				'A link to activate your account has been emailed to the address provided';
+		}
+
 		if (!config.USE_SESSION) {
 			const { accessToken, refreshToken } = await jwtHelpers.generateAuthTokens(
 				{

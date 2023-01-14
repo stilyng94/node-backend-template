@@ -5,11 +5,11 @@ abstract class CustomError extends Error {
 	/**
 	 * Status code of error
 	 */
-	abstract statusCode: number;
+	abstract readonly statusCode: number;
 
 	constructor(message: string) {
 		super(message);
-		Object.setPrototypeOf(this, CustomError.prototype);
+		Object.setPrototypeOf(this, new.target.prototype);
 	}
 
 	abstract serializeErrors(): Array<{ message: string; field?: string }>;

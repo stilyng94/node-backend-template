@@ -5,6 +5,7 @@ import redisClient from './libs/redis-client';
 import dbClient from './libs/db-client';
 import queue from './libs/queue';
 import config from './config';
+import initializeSocketIo from './libs/initializeSocketIo';
 
 const port = config.PORT;
 
@@ -26,15 +27,18 @@ const main = async () => {
 	try {
 		await redisClient.connect();
 		await dbClient.$connect();
+		const io = initializeSocketIo(server);
 
 		createTerminus(server, {
 			logger: (msg, err) => logger.error(err, msg),
 			signals: ['SIGINT', 'SIGBREAK', 'SIGHUP', 'SIGTERM'],
 			healthChecks: { '/health-check': healthCheck },
-			onShutdown: async () =>
+			onShutdown: async () => {
+				io.disconnectSockets(true);
+				await onSignal();
 				// eslint-disable-next-line no-console
-				console.warn('cleanup finished, server is shutting down'),
-			onSignal,
+				console.warn('cleanup finished');
+			},
 		}).listen(port);
 	} catch (error) {
 		logger.error(error);

@@ -96,6 +96,7 @@
 		"pino-sentry": "^0.13.0",
 		"prisma": "^4.7.1",
 		"rate-limiter-flexible": "^2.3.12",
+		"socket.io": "^4.5.4",
 		"znv": "^0.3.2",
 		"zod": "^3.20.2"
 	},

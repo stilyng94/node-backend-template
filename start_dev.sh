@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -e
 
-echo "migrate for deployment"
-pnpm migrate:deploy
-echo "migration success"
+echo "create tables"
+pnpm prototype
+echo "tables created"
 
 echo "Seeding database"
-pnpm seed
+pnpm seed:dev
 echo "seeding success"
 
 echo "start app"
+pnpm dev
 exec "$@"

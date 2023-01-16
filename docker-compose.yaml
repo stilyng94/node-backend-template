@@ -52,7 +52,7 @@ services:
     depends_on:
       - db
       - redis
-    command: ['/bin/bash', '-c', 'pnpm worker']
+    command: ['/bin/bash', '-c', 'node ./dist/worker.js']
 
 volumes:
   pgdata:

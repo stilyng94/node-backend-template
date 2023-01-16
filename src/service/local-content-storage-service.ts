@@ -3,8 +3,8 @@ import path from 'path';
 import { promisify } from 'util';
 import fs from 'fs';
 import { Request } from 'express';
-import logger from '../libs/logger';
-import mediaHelpers from '../helpers/media-helpers';
+import logger from '@/libs/logger';
+import mediaHelpers from '@/helpers/media-helpers';
 
 const MEDIA_DESTINATION = path.join('public', 'uploads');
 

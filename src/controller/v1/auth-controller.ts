@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
-import BadRequestError from '../../errors/bad-request-error';
-import authHelpers from '../../helpers/auth-helpers';
-import dbClient from '../../libs/db-client';
-import logger from '../../libs/logger';
-import routeRateLimiter from '../../libs/rate-limit';
-import jwtHelpers from '../../helpers/jwt-helpers';
-import config from '../../config';
+import authHelpers from '@/helpers/auth-helpers';
+import jwtHelpers from '@/helpers/jwt-helpers';
+import BadRequestError from '@/errors/bad-request-error';
+import dbClient from '@/libs/db-client';
+import logger from '@/libs/logger';
+import routeRateLimiter from '@/libs/rate-limit';
+import config from '@/config';
 
 async function newAccount(req: Request, res: Response) {
 	try {
@@ -37,7 +37,7 @@ async function loginHandler(req: Request, res: Response) {
 	};
 	if (!config.USE_SESSION) {
 		const { accessToken, refreshToken } = await jwtHelpers.generateAuthTokens({
-			userId: req.user!.id,
+			userId: req.user?.id,
 		});
 
 		jsonResponse.accessToken = accessToken;

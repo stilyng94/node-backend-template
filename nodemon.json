@@ -4,6 +4,6 @@
 	"ignore": [],
 	"ext": ".ts,.js",
 	"execMap": {
-		"ts": "node --inspect=0.0.0.0:9229 --nolazy --require ts-node/register"
+		"ts": "node --inspect=0.0.0.0:9229 --nolazy --require tsconfig-paths/register --require ts-node/register"
 	}
 }

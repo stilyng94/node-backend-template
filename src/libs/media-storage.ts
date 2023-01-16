@@ -1,6 +1,6 @@
 import multer from 'multer';
 import { Request } from 'express';
-import localContentStorageService from '../service/local-content-storage-service';
+import localContentStorageService from '@/service/local-content-storage-service';
 
 const DEFAULT_MEDIA_SIZE = '124288000'; // 100mb+ as default
 
@@ -33,8 +33,8 @@ const acceptedMimeTypes = new Set([
 	'video/x-matroska',
 	'video/x-msvideo',
 	'audio/aac',
-	'application/msword', 
-  	'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+	'application/msword',
+	'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ]);
 
 /**

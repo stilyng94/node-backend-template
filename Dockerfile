@@ -41,13 +41,13 @@ RUN pnpm install --prod --frozen-lockfile --ignore-scripts && pnpm store prune &
 
 COPY --from=builder /usr/app/dist ./dist
 COPY ./views ./views
-COPY entrypoint.sh ./
+COPY start.sh ./
 
-RUN chmod +x ./entrypoint.sh && chown node:node /usr/app
+RUN chmod +x ./start.sh && chown node:node /usr/app
 
 EXPOSE 5001
 
 USER node
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["/bin/bash", "-c", "./entrypoint.sh; pnpm start"]
+CMD ["/bin/bash", "-c", "./start.sh"]

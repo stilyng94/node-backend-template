@@ -6,17 +6,17 @@ import jsonwebtoken, { JwtPayload } from 'jsonwebtoken';
 import { OAuth2Client as GoogleOAuth2Client } from 'google-auth-library';
 import JwksRsa from 'jwks-rsa';
 import axios from 'axios';
-import { IBaseEmailInput } from '../interfaces/mail-interfaces';
-import dbClient from '../libs/db-client';
-import mailHelpers from './mail-helpers';
-import BadRequestError from '../errors/bad-request-error';
-import redisClient from '../libs/redis-client';
-import constants from '../resources/constants';
-import cryptoUtils from '../utils/crypto-utils';
-import logger from '../libs/logger';
-import routeRateLimiter from '../libs/rate-limit';
-import OauthUser from '../interfaces/oauth-user';
-import config from '../config';
+import dbClient from '@/libs/db-client';
+import BadRequestError from '@/errors/bad-request-error';
+import redisClient from '@/libs/redis-client';
+import constants from '@/resources/constants';
+import cryptoUtils from '@/utils/crypto-utils';
+import logger from '@/libs/logger';
+import routeRateLimiter from '@/libs/rate-limit';
+import { IBaseEmailInput } from '@/interfaces/mail-interfaces';
+import mailHelpers from '@/helpers/mail-helpers';
+import OauthUser from '@/interfaces/oauth-user';
+import config from '@/config';
 
 const verifyGoogleOauthToken = async (
 	token: string

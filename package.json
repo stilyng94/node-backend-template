@@ -6,7 +6,7 @@
 	"author": "stilyng94",
 	"license": "MIT",
 	"scripts": {
-		"build": "rm -rf ./dist && tsc",
+		"build": "rm -rf ./dist && tsc && tsc-alias",
 		"lint": "prettier --write --ignore-unknown . && eslint --fix --ext src/*.{js,ts,json}",
 		"start": "node ./dist/index.js",
 		"dev": "nodemon -L ./src/index.ts",
@@ -50,6 +50,7 @@
 		"eslint-config-airbnb-typescript": "^17.0.0",
 		"eslint-config-prettier": "^8.5.0",
 		"eslint-config-standard-with-typescript": "^23.0.0",
+		"eslint-import-resolver-typescript": "^3.5.3",
 		"eslint-plugin-import": "^2.25.2",
 		"eslint-plugin-jest": "^27.1.1",
 		"eslint-plugin-n": "^15.0.0",
@@ -64,6 +65,8 @@
 		"supertest": "^6.3.0",
 		"ts-jest": "^29.0.3",
 		"ts-node": "^10.9.1",
+		"tsc-alias": "^1.8.2",
+		"tsconfig-paths": "^4.1.2",
 		"typescript": "*"
 	},
 	"dependencies": {

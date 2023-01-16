@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import jwtHelpers from '../helpers/jwt-helpers';
+import jwtHelpers from '@/helpers/jwt-helpers';
 
 async function accessTokenMiddleware(
 	req: Request,

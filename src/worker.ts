@@ -1,8 +1,8 @@
 import { Worker } from 'bullmq';
 import path from 'path';
-import config from './config';
-import logger from './libs/logger';
-import constants from './resources/constants';
+import logger from '@/libs/logger';
+import constants from '@/resources/constants';
+import config from '@/config';
 
 const processorFile = constants.isProduction
 	? path.join(__dirname, 'helpers', 'worker-processor.js')
@@ -20,24 +20,15 @@ const worker = new Worker('demo', processorFile, {
 	},
 });
 
-process.on('SIGTERM', async () => {
-	logger.info('SIGTERM signal received: closing queues');
+async function closeWorker() {
+	logger.info('closing queues');
 	await worker.close();
-	logger.info('All closed');
-});
+	logger.info('worker closed');
+}
 
-process.on('SIGBREAK', async () => {
-	logger.info('SIGBREAK signal received: closing queues');
-	await worker.close();
-	logger.info('All closed');
-});
-process.on('SIGHUP', async () => {
-	logger.info('SIGHUP signal received: closing queues');
-	await worker.close();
-	logger.info('All closed');
+process.on('SIGTERM', async () => {
+	await closeWorker();
 });
 process.on('SIGINT', async () => {
-	logger.info('SIGINT signal received: closing queues');
-	await worker.close();
-	logger.info('All closed');
+	await closeWorker();
 });

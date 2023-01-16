@@ -1,8 +1,8 @@
 import pino, { Logger, LoggerOptions } from 'pino';
 import { createWriteStream } from 'pino-sentry';
 
-import constants from '../resources/constants';
-import config from '../config';
+import constants from '@/resources/constants';
+import config from '@/config';
 
 export const pinoSentryStream = createWriteStream({
 	dsn: config.SENTRY_DSN,

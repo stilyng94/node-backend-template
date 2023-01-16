@@ -2,11 +2,11 @@ import { Application, Request } from 'express';
 import passport from 'passport';
 import OAuth2Strategy, { VerifyCallback } from 'passport-oauth2';
 import { Strategy as LocalStrategy } from 'passport-local';
-import authHelpers from './auth-helpers';
-import routeRateLimiter from '../libs/rate-limit';
-import constants from '../resources/constants';
-import NotAuthenticatedError from '../errors/not-authenticated-error';
-import config from '../config';
+import routeRateLimiter from '@/libs/rate-limit';
+import constants from '@/resources/constants';
+import NotAuthenticatedError from '@/errors/not-authenticated-error';
+import authHelpers from '@/helpers/auth-helpers';
+import config from '@/config';
 
 const facebookOAuth2Strategy = new OAuth2Strategy(
 	{

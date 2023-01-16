@@ -1,8 +1,8 @@
 import { Request } from 'express';
 import jsonwebtoken, { JwtPayload } from 'jsonwebtoken';
-import config from '../config';
-import redisClient from '../libs/redis-client';
-import cryptoUtils from '../utils/crypto-utils';
+import redisClient from '@/libs/redis-client';
+import cryptoUtils from '@/utils/crypto-utils';
+import config from '@/config';
 
 type CustomPayloadType = Record<string, unknown>;
 interface VerifyTokenArg {

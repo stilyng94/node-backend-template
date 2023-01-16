@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import constants from '../resources/constants';
+import constants from '@/resources/constants';
 
 const dbClient = new PrismaClient({
 	errorFormat: constants.isProduction ? 'colorless' : 'pretty',

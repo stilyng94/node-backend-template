@@ -25,9 +25,9 @@ COPY . .
 EXPOSE ${PORT}
 EXPOSE 9229
 
-RUN chmod +x ./entrypoint_dev.sh && chown node:node /usr/app
+RUN chmod +x ./start_dev.sh && chown node:node /usr/app
 
 USER node
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["/bin/bash", "-c", "./entrypoint_dev.sh; pnpm dev"]
+CMD ["/bin/bash", "-c", "./start_dev.sh"]

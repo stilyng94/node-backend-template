@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import routeRateLimiter, { getUsernameIPkey } from '../libs/rate-limit';
+import routeRateLimiter, { getUsernameIPkey } from '@/libs/rate-limit';
 
 const userNameIpLimiterMiddleware = async (
 	req: Request,

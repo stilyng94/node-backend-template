@@ -16,6 +16,7 @@ async function main() {
 main()
 	.then(async () => {
 		await dbClient.$disconnect();
+		process.exit();
 	})
 	.catch(async (e) => {
 		logger.error(e);

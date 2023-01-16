@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import queue from '../../libs/queue';
-import jsonJobs from '../../resources/job.json';
+import queue from '@/libs/queue';
+import jsonJobs from '@/resources/job.json';
 
 async function getAllJobs(req: Request, res: Response, next: NextFunction) {
 	try {

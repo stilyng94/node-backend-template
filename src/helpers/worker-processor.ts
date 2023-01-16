@@ -1,5 +1,5 @@
 import { SandboxedJob } from 'bullmq';
-import logger from '../libs/logger';
+import logger from '@/libs/logger';
 
 export default async (job: SandboxedJob) => {
 	switch (job.name) {

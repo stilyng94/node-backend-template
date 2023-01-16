@@ -1,12 +1,12 @@
 import express from 'express';
 import passport from 'passport';
-import config from '../../config';
-import authController from '../../controller/v1/auth-controller';
-import authMiddleware from '../../middleware/auth-middleware';
-import jwtMiddleware from '../../middleware/jwt-middleware';
-import rateLimiterMiddleware from '../../middleware/rate-limiter-middleware';
-import validateRequestMiddleWare from '../../middleware/validate-request-middleware';
-import authValidator from '../../validators/auth-validator';
+import authController from '@/controller/v1/auth-controller';
+import authMiddleware from '@/middleware/auth-middleware';
+import jwtMiddleware from '@/middleware/jwt-middleware';
+import rateLimiterMiddleware from '@/middleware/rate-limiter-middleware';
+import validateRequestMiddleWare from '@/middleware/validate-request-middleware';
+import authValidator from '@/validators/auth-validator';
+import config from '@/config';
 
 const authRouter = express.Router();
 

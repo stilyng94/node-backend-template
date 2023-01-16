@@ -1,7 +1,7 @@
 import express from 'express';
-import queueController from '../../controller/v1/queue-controller';
-import validateRequestMiddleWare from '../../middleware/validate-request-middleware';
-import queueValidator from '../../validators/queue-validator';
+import queueController from '@/controller/v1/queue-controller';
+import validateRequestMiddleWare from '@/middleware/validate-request-middleware';
+import queueValidator from '@/validators/queue-validator';
 
 const queueRouter = express.Router();
 

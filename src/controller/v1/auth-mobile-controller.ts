@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import config from '../../config';
-import authHelpers from '../../helpers/auth-helpers';
-import jwtHelpers from '../../helpers/jwt-helpers';
+import authHelpers from '@/helpers/auth-helpers';
+import jwtHelpers from '@/helpers/jwt-helpers';
+import config from '@/config';
 
 async function newOrConnectOauthAccount(
 	req: Request,

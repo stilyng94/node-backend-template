@@ -1,8 +1,8 @@
 import ejs from 'ejs';
 import path from 'path';
-import { IBaseEmailInput } from '../interfaces/mail-interfaces';
-import logger from '../libs/logger';
-import EtherealMailService from '../service/mail/ethereal-mail-service';
+import logger from '@/libs/logger';
+import EtherealMailService from '@/service/mail/ethereal-mail-service';
+import { IBaseEmailInput } from '@/interfaces/mail-interfaces';
 
 const getRenderedTemplate = async (
 	template: string,

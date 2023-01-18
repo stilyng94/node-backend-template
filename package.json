@@ -20,8 +20,8 @@
 		"migrate:deploy": "prisma migrate deploy",
 		"migrate:dev": "prisma migrate dev --skip-seed",
 		"seed": "pnpm prisma db seed",
-		"seed:dev": "ts-node ./src/seed/seed.ts",
-		"worker:dev": "ts-node ./src/worker.ts",
+		"seed:dev": "ts-node --require tsconfig-paths/register ./src/seed/seed.ts",
+		"worker:dev": "ts-node --require tsconfig-paths/register ./src/worker.ts",
 		"worker": "node ./dist/worker.js"
 	},
 	"devDependencies": {

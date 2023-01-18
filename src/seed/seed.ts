@@ -1,6 +1,6 @@
-import authHelpers from '../helpers/auth-helpers';
-import dbClient from '../libs/db-client';
-import logger from '../libs/logger';
+import dbClient from '@/libs/db-client';
+import logger from '@/libs/logger';
+import authHelpers from '@/helpers/auth-helpers';
 
 async function main() {
 	await dbClient.$connect();

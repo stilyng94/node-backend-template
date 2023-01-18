@@ -10,7 +10,6 @@ services:
     restart: unless-stopped
     volumes:
       - ./src:/usr/app/src
-      - ./node_modules:/usr/app/node_modules
       - ./package.json:/usr/app/package.json
       - ./views:/usr/app/views
     ports:
@@ -50,7 +49,6 @@ services:
     restart: unless-stopped
     volumes:
       - ./src:/usr/app/src
-      - ./node_modules:/usr/app/node_modules
       - ./package.json:/usr/app/package.json
       - ./views:/usr/app/views
     depends_on:

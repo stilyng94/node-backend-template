@@ -31,7 +31,6 @@ export default parseEnv(process.env, {
 	BASE_URL: url,
 	GITHUB_CLIENT_ID: z.string(),
 	GITHUB_CLIENT_SECRET: z.string(),
-	ETHEREAL_NAME: z.string(),
 	ETHEREAL_USERNAME: z.string(),
 	ETHEREAL_PASSWORD: z.string(),
 	ACCESS_TOKEN_SECRET: z.string(),

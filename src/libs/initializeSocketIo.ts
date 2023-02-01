@@ -1,11 +1,12 @@
 import { Server, Socket } from 'socket.io';
 import { Server as httpServer } from 'http';
 
-import demoHandler from '@/io_handler/demo-handler';
 import jwtMiddleware from '@/middleware/jwt-middleware';
 import authMiddleware from '@/middleware/auth-middleware';
 import logger from '@/libs/logger';
+import documentHandler from '@/io_handler/document-handler';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const wrap = (middleware: any) => (socket: Socket, next: (err?: any) => void) =>
 	middleware(socket.request, {}, next);
 
@@ -21,9 +22,7 @@ const initializeSocketIo = (server: httpServer) => {
 	});
 
 	const onConnection = (socket: Socket) => {
-		socket.send('hello from server');
-
-		demoHandler(io, socket);
+		documentHandler(io, socket);
 	};
 
 	io.on('connection', onConnection);

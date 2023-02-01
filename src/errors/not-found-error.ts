@@ -7,9 +7,8 @@ import CustomError from './custom-error';
 class NotFoundError extends CustomError {
 	readonly statusCode = 404;
 
-	constructor(req: Request) {
-		const message = `Route not found: ${req.originalUrl}`;
-		super(message);
+	constructor(req: Request, message?: string) {
+		super(message ?? `Route not found: ${req.originalUrl}`);
 		Object.setPrototypeOf(this, new.target.prototype);
 	}
 

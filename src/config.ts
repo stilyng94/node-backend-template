@@ -9,6 +9,10 @@ const environment = z
 	.enum(['test', 'development', 'staging', 'production'])
 	.default('development');
 
+const meilisearchEnvironment = z
+	.enum(['development', 'production'])
+	.default('development');
+
 export default parseEnv(process.env, {
 	NODE_ENV: environment,
 	PORT: port().default(5000),
@@ -38,4 +42,8 @@ export default parseEnv(process.env, {
 	REFRESH_TOKEN_SECRET: z.string(),
 	REFRESH_TOKEN_EXP: z.number().int().positive(),
 	USE_SESSION: z.boolean().default(false),
+	MEILI_HOST: url,
+	MEILI_ENV: meilisearchEnvironment,
+	MEILI_MASTER_KEY: z.string(),
+	MEILI_API_KEY: z.string(),
 });

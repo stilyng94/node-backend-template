@@ -8,7 +8,7 @@ services:
     env_file: .env
     container_name: api
     healthcheck:
-      test: ['CMD', 'curl', '--fail', 'http://api:5001/health-check']
+      test: ['CMD-SHELL', 'curl', '--fail', 'http://api:5001/health-check']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,8 +27,8 @@ services:
     restart: unless-stopped
     ports:
       - '${REDIS_PORT}:6379'
-    # volumes:
-    #   - 'redisLocal:/bitnami/redis/data'
+    volumes:
+      - 'redis_data:/bitnami/redis/data'
 
   db:
     image: postgres:14-alpine
@@ -54,5 +54,17 @@ services:
       - redis
     command: ['/bin/bash', '-c', 'node ./dist/worker.js']
 
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    env_file: .env
+    container_name: meilisearch
+    restart: unless-stopped
+    ports:
+      - '7700:7700'
+    volumes:
+      - 'meili_data:/meili_data'
+
 volumes:
   pgdata:
+  redis_data:
+  meili_data:

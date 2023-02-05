@@ -27,6 +27,7 @@
 	"devDependencies": {
 		"@commitlint/cli": "^17.1.2",
 		"@commitlint/config-conventional": "^17.1.0",
+		"@faker-js/faker": "^7.6.0",
 		"@tsconfig/recommended": "^1.0.1",
 		"@types/connect-redis": "^0.0.18",
 		"@types/cors": "^2.8.12",
@@ -89,6 +90,7 @@
 		"ioredis": "^5.2.3",
 		"jsonwebtoken": "^8.5.1",
 		"jwks-rsa": "^3.0.0",
+		"meilisearch": "^0.30.0",
 		"multer": "^1.4.5-lts.1",
 		"nodemailer": "^6.8.0",
 		"passport": "^0.6.0",

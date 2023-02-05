@@ -107,3 +107,4 @@ runtime/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+meili_data/

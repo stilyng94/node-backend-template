@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import queue from '@/libs/queue';
-import jsonJobs from '@/resources/job.json';
+import fs from 'fs';
+import path from 'path';
 
 async function getAllJobs(req: Request, res: Response, next: NextFunction) {
 	try {
@@ -11,7 +12,7 @@ async function getAllJobs(req: Request, res: Response, next: NextFunction) {
 	}
 }
 
-async function getAllCronJobs(req: Request, res: Response, next: NextFunction) {
+async function getAllCrons(req: Request, res: Response, next: NextFunction) {
 	try {
 		const jobs = await queue.getRepeatableJobs();
 		return res.status(200).json(jobs);
@@ -30,7 +31,7 @@ async function retryFailedJob(req: Request, res: Response, next: NextFunction) {
 	}
 }
 
-async function deleteCronJob(req: Request, res: Response, next: NextFunction) {
+async function deleteCron(req: Request, res: Response, next: NextFunction) {
 	try {
 		const { jobKey } = req.body;
 		await queue.removeRepeatableByKey(jobKey);
@@ -49,10 +50,9 @@ async function deleteJob(req: Request, res: Response, next: NextFunction) {
 	}
 }
 
-async function addCronJob(req: Request, res: Response, next: NextFunction) {
+async function addCron(req: Request, res: Response, next: NextFunction) {
 	try {
 		const {
-			jobId,
 			jobName,
 			pattern,
 			jobData,
@@ -63,7 +63,6 @@ async function addCronJob(req: Request, res: Response, next: NextFunction) {
 			every,
 		} = req.body;
 		const job = await queue.add(jobName, jobData, {
-			jobId,
 			delay: delay ?? 0,
 			repeat: { pattern, utc: true, startDate, endDate, limit, every },
 		});
@@ -74,19 +73,18 @@ async function addCronJob(req: Request, res: Response, next: NextFunction) {
 }
 
 async function getConfigJobs(req: Request, res: Response, next: NextFunction) {
-	try {
-		return res.status(200).json(jsonJobs);
-	} catch (error) {
-		return next(error);
-	}
+	fs.readFile(path.resolve(process.cwd(), 'job.json'), (error, data) => {
+		if (error) return next(error);
+		return res.status(200).json(JSON.parse(data.toString('utf8')));
+	});
 }
 
 export default {
 	getAllJobs,
 	retryFailedJob,
-	getAllCronJobs,
-	deleteCronJob,
+	getAllCrons,
+	deleteCron,
 	deleteJob,
-	addCronJob,
+	addCron,
 	getConfigJobs,
 };

@@ -1,0 +1,13 @@
+{
+	"name": "user",
+	"type": "record",
+  "namespace":"org.user.com",
+	"fields": [
+		{
+			"name": "gender",
+			"type": { "name": "gender_type", "type": "enum", "symbols": ["m", "f"] }
+		},
+		{ "name": "name", "type": "string" },
+		{ "name": "age", "type": "int" }
+	]
+}

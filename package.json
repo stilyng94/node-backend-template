@@ -9,7 +9,7 @@
 		"build": "rm -rf ./dist && tsc && tsc-alias",
 		"lint": "prettier --write --ignore-unknown . && eslint --fix --ext src/*.{js,ts,json}",
 		"start": "node ./dist/index.js",
-		"dev": "nodemon -L ./src/index.ts",
+		"dev": "nodemon -L --inspect=0.0.0.0:9229 ./src/index.ts",
 		"prepare": "husky install",
 		"test": "jest --detectOpenHandles --no-cache -i",
 		"prototype": "prisma db push --accept-data-loss",
@@ -21,8 +21,10 @@
 		"migrate:dev": "prisma migrate dev --skip-seed",
 		"seed": "pnpm prisma db seed",
 		"seed:dev": "ts-node --require tsconfig-paths/register ./src/seed/seed.ts",
-		"worker:dev": "ts-node --require tsconfig-paths/register ./src/worker.ts",
-		"worker": "node ./dist/worker.js"
+		"worker:dev": "nodemon -L --inspect=0.0.0.0:9228 ./src/worker.ts",
+		"worker": "node ./dist/worker.js",
+		"produce": "ts-node --require tsconfig-paths/register ./src/events/producer.ts",
+		"consume": "ts-node --require tsconfig-paths/register ./src/events/consumer.ts"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^17.1.2",
@@ -72,6 +74,7 @@
 	},
 	"dependencies": {
 		"@godaddy/terminus": "^4.11.2",
+		"@kafkajs/confluent-schema-registry": "^3.3.0",
 		"@prisma/client": "^4.7.1",
 		"@sentry/node": "^7.25.0",
 		"axios": "^1.2.1",
@@ -91,6 +94,7 @@
 		"jsonwebtoken": "^8.5.1",
 		"jwks-rsa": "^3.0.0",
 		"meilisearch": "^0.30.0",
+		"kafkajs": "^2.2.3",
 		"multer": "^1.4.5-lts.1",
 		"nodemailer": "^6.8.0",
 		"passport": "^0.6.0",

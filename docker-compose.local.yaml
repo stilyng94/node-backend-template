@@ -66,7 +66,54 @@ services:
     volumes:
       - 'meili_data:/meili_data'
 
+  zookeeper:
+    image: bitnami/zookeeper@sha256:bf2901d64cde446ecfca6aa4fd03a4451609e596179d60eb6a015155bbab905c
+    ports:
+      - '7777:7777'
+    volumes:
+      - zookeeperData:/bitnami/zookeeper
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+      - ZOO_PORT_NUMBER=7777
+
+  kafka:
+    image: bitnami/kafka@sha256:774c9bf466b4f51223bb7117c921153b5fcaa0daf82c69d1c89c9ebaf1b35e34
+    ports:
+      - "9093:9093"
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:7777
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_CFG_DELETE_TOPIC_ENABLE: 'true'
+      KAFKA_CFG_CREATE_TOPICS: "topic-test:1:1"
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+      KAFKA_BROKER_ID: 1
+      ALLOW_PLAINTEXT_LISTENER: yes
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CFG_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://kafka:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:9093
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: INTERNAL
+    volumes:
+      - kafkaData:/bitnami/kafka
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:latest@sha256:e7a7c0b2d71f140467517094636357986a49586b12ce56919c67fc391145f929
+    ports:
+      - '8081:8081'
+    depends_on:
+      - zookeeper
+      - kafka
+    environment:
+      SCHEMA_REGISTRY_DEBUG: "true"
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:9092
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+
 volumes:
   pgdata:
   redisLocal:
   meili_data:
+  schemaRegistryData:
+  kafkaData:
+  zookeeperData:

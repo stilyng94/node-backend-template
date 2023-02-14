@@ -12,7 +12,7 @@
       "localRoot": "${workspaceFolder}/src",
       "runtimeVersion": "18.12.1",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["run-script", "worker:dev"]
+      "runtimeArgs": ["run-script", "dev"]
 
     },
 		{

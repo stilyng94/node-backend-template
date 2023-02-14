@@ -73,10 +73,11 @@ async function addCron(req: Request, res: Response, next: NextFunction) {
 }
 
 async function getConfigJobs(req: Request, res: Response, next: NextFunction) {
-	fs.readFile(path.resolve(process.cwd(), 'job.json'), (error, data) => {
-		if (error) return next(error);
-		return res.status(200).json(JSON.parse(data.toString('utf8')));
-	});
+	try {
+		return res.sendStatus(200);
+	} catch (error) {
+		return next(error);
+	}
 }
 
 export default {

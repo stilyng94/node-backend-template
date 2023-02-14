@@ -6,6 +6,7 @@ import initializeSocketIo from '@/libs/initializeSocketIo';
 import logger from '@/libs/logger';
 import config from '@/config';
 import server from '@/server';
+import jobSchemaValidator from './validators/job-schema-validator';
 
 const port = config.PORT;
 
@@ -25,6 +26,8 @@ async function healthCheck() {
 
 const main = async () => {
 	try {
+		// parse job schema
+		await jobSchemaValidator();
 		await redisClient.connect();
 		await dbClient.$connect();
 		const io = initializeSocketIo(server);

@@ -58,3 +58,15 @@ enum OauthProvider {
   google
   github
 }
+
+model Company {
+  id        String        @id @default(cuid())
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  bsBuzz String
+	catchPhrase String
+	catchPhraseDescriptor String
+	name String
+  contact String
+
+}

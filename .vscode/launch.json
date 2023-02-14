@@ -15,7 +15,6 @@
       "runtimeArgs": ["run-script", "dev"]
 
     },
-
 		{
 			"name": "Docker: Attach to Node",
 			"type": "node",

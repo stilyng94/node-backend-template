@@ -1,12 +1,12 @@
 import { Worker } from 'bullmq';
 import path from 'path';
 import logger from '@/libs/logger';
-import constants from '@/resources/constants';
 import config from '@/config';
 
-const processorFile = constants.isProduction
-	? path.join(__dirname, 'helpers', 'worker-processor.js')
-	: path.join(__dirname, 'helpers', 'worker-processor.ts');
+const processorFile =
+	__filename.split('.').at(-1) === 'js'
+		? path.join(__dirname, 'helpers', 'worker-processor.js')
+		: path.join(__dirname, 'helpers', 'worker-processor.ts');
 
 const worker = new Worker('demo', processorFile, {
 	concurrency: 5,

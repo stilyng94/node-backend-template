@@ -1,0 +1,46 @@
+[
+	{
+		"name": "custom.template.demo",
+		"module": "jobsteps/demo",
+		"description": "",
+		"parameters": {
+			"parameter": [
+				{
+					"@name": "Age",
+					"@type": "number",
+					"@required": true,
+					"description": "User's age"
+				},
+				{
+					"@name": "Username",
+					"@type": "string",
+					"@required": true,
+					"description": "username"
+				},
+				{
+					"@name": "Gender",
+					"@type": "string",
+					"@required": false,
+					"@trim": true,
+					"enum-values": {
+						"value": ["Male", "Female", "None"]
+					},
+					"description": "Gender",
+					"default-value": "None"
+				}
+			]
+		},
+		"status-codes": {
+			"status": [
+				{
+					"@code": "ERROR",
+					"description": "Used when an error occurred."
+				},
+				{
+					"@code": "OK",
+					"description": "Used when everything went well."
+				}
+			]
+		}
+	}
+]

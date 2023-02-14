@@ -2,7 +2,6 @@ import express from 'express';
 import authMobileRouter from './auth-mobile-router';
 import authRouter from './auth-router';
 import indexingRouter from './indexing-router';
-import queueRouter from './queue-router';
 import cronRouter from './cron-router';
 
 /**

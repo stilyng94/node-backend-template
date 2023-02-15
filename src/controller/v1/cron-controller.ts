@@ -1,7 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
 import queue from '@/libs/queue';
-import fs from 'fs';
+import meilisearchCLient from '@/libs/meilisearch-client';
 import path from 'path';
+import fs from 'fs';
+import BadRequestError from '@/errors/bad-request-error';
+import cronJobValidator from '@/validators/cron-job-validator';
 
 async function getAllJobs(req: Request, res: Response, next: NextFunction) {
 	try {
@@ -62,10 +65,27 @@ async function addCron(req: Request, res: Response, next: NextFunction) {
 			limit,
 			every,
 		} = req.body;
-		const job = await queue.add(jobName, jobData, {
-			delay: delay ?? 0,
-			repeat: { pattern, utc: true, startDate, endDate, limit, every },
+		const jobIndex = meilisearchCLient.index('cron-jobs');
+		const result = await jobIndex.search(jobName, {
+			attributesToRetrieve: ['module'],
 		});
+		if (!result) {
+			throw new BadRequestError(
+				`job with name ${jobName} not configured yet. Please add to job.json and the required processor`
+			);
+		}
+		const { module } = result.hits[0];
+
+		const parsedData = await cronJobValidator.parseAddJobData(jobData, module);
+
+		const job = await queue.add(
+			jobName,
+			{ ...parsedData, module },
+			{
+				delay: delay ?? 0,
+				repeat: { pattern, utc: true, startDate, endDate, limit, every },
+			}
+		);
 		return res.status(200).json(job);
 	} catch (error) {
 		return next(error);
@@ -74,7 +94,9 @@ async function addCron(req: Request, res: Response, next: NextFunction) {
 
 async function getConfigJobs(req: Request, res: Response, next: NextFunction) {
 	try {
-		return res.sendStatus(200);
+		const jobIndex = meilisearchCLient.index('cron-jobs');
+		const jobs = await jobIndex.getDocuments();
+		return res.status(200).json({ data: jobs, success: true });
 	} catch (error) {
 		return next(error);
 	}

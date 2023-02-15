@@ -1,6 +1,6 @@
 [
-	{
-		"name": "custom.template.demo",
+  {
+		"name": "custom-template-demo",
 		"module": "jobsteps/demo",
 		"description": "",
 		"parameters": {
@@ -16,6 +16,13 @@
 					"@type": "string",
 					"@required": true,
 					"description": "username"
+				},
+        {
+					"@name": "Consent",
+					"@type": "boolean",
+					"@required": false,
+					"description": "consent",
+          "default-value": false
 				},
 				{
 					"@name": "Gender",

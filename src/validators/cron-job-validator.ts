@@ -1,26 +1,14 @@
 import cron from 'cron-validate';
 import { checkSchema } from 'express-validator';
+import path from 'path';
+import fs from 'fs';
+import BadRequestError from '@/errors/bad-request-error';
 
 const addCronJobValidator = checkSchema(
 	{
-		jobData: {
-			optional: {},
-			isObject: {},
-		},
-
+		jobData: { isObject: {} },
 		jobName: {
 			isString: {},
-			// custom: {
-			// 	options(value) {
-			// 		const exists = jsonJobs.find((job) => job.name === value);
-			// 		if (exists) {
-			// 			return true;
-			// 		}
-			// 		throw new Error(
-			// 			`job with name ${value} not configured yet. Please add to job.json and the required processor`
-			// 		);
-			// 	},
-			// },
 		},
 		pattern: {
 			optional: {},
@@ -75,76 +63,27 @@ const addCronJobValidator = checkSchema(
 	['body']
 );
 
-const cronJobValidator = checkSchema(
-	{
-		jobData: {
-			optional: {},
-			isObject: {},
-		},
-		pattern: {
-			optional: {},
-			isString: {},
-			custom: {
-				options(value, { req }) {
-					if (value && req.body.every) {
-						throw new Error(
-							'pattern and every can not be used at the same time'
-						);
-					}
-					const cronResult = cron(value);
-					if (cronResult.isError()) {
-						throw new Error('pattern is not a valid cron data');
-					}
+async function parseAddJobData(jobData: object, module: string) {
+	let modulePath;
 
-					return true;
-				},
-			},
-		},
-		every: {
-			optional: {},
-			isNumeric: { options: { no_symbols: true }, negated: false },
-			custom: {
-				options(value, { req }) {
-					if (value && req.body.pattern) {
-						throw new Error(
-							'pattern and every can not be used at the same time'
-						);
-					}
-					return true;
-				},
-			},
-		},
-		startDate: {
-			optional: {},
-			isDate: {},
-		},
-		endDate: {
-			optional: {},
-			isDate: {},
-		},
-		delay: {
-			optional: {},
-			isNumeric: { options: { no_symbols: true }, negated: false },
-		},
-		limit: {
-			optional: {},
-			isNumeric: { options: { no_symbols: true }, negated: false },
-		},
-		jobName: {
-			isString: {},
-			// custom: {
-			// 	options(value) {
-			// 		const exists = jsonJobs.find((job) => job.name === value);
-			// 		if (exists) {
-			// 			return true;
-			// 		}
-			// 		throw new Error(
-			// 			`job with name ${value} not configured yet. Please add to job.json and the required processor`
-			// 		);
-			// 	},
-			// },
-		},
-	},
-	['body']
-);
-export default { addCronJobValidator, cronJobValidator };
+	if (__filename.split('.').at(-1) !== 'js') {
+		modulePath = path.resolve(process.cwd(), `./src/jobsteps/${module}.ts`);
+	} else {
+		modulePath = path.resolve(process.cwd(), `./dist/jobsteps/${module}.js`);
+	}
+
+	let validatorFunc;
+
+	if (fs.existsSync(modulePath)) {
+		validatorFunc = await import(modulePath);
+	}
+
+	if (!validatorFunc) throw new BadRequestError(`Validator function error`);
+
+	const parsedData = await validatorFunc.validator.parseAsync(jobData, {
+		async: true,
+	});
+	return parsedData;
+}
+
+export default { addCronJobValidator, parseAddJobData };

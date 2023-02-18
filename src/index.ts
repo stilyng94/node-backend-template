@@ -6,7 +6,8 @@ import initializeSocketIo from '@/libs/initializeSocketIo';
 import logger from '@/libs/logger';
 import config from '@/config';
 import server from '@/server';
-import jobSchemaValidator from './validators/job-schema-validator';
+import jobHelpers from './helpers/job-helpers';
+import meilisearchCLient from './libs/meilisearch-client';
 
 const port = config.PORT;
 
@@ -26,8 +27,8 @@ async function healthCheck() {
 
 const main = async () => {
 	try {
-		// parse job schema
-		await jobSchemaValidator();
+		await meilisearchCLient.health();
+		if (config.CRON_JOB) await jobHelpers.validateAndIndexJobs();
 		await redisClient.connect();
 		await dbClient.$connect();
 		const io = initializeSocketIo(server);

@@ -22,11 +22,14 @@ export default async (job: SandboxedJob) => {
 	let modulePath;
 
 	if (__filename.split('.').at(-1) !== 'js') {
-		modulePath = path.resolve(process.cwd(), `./src/${job.data.modulePath}.ts`);
+		modulePath = path.resolve(
+			process.cwd(),
+			`./src/jobsteps/${job.data.module}.ts`
+		);
 	} else {
 		modulePath = path.resolve(
 			process.cwd(),
-			`./dist/${job.data.modulePath}.js`
+			`./dist/jobsteps/${job.data.module}.js`
 		);
 	}
 
@@ -38,5 +41,5 @@ export default async (job: SandboxedJob) => {
 
 	if (!jobFunc) return;
 
-	jobFunc.Run(job.data.args);
+	jobFunc.Run(job.data);
 };

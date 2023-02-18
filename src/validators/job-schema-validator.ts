@@ -1,10 +1,11 @@
 import z from 'zod';
 import fs from 'fs';
 import path from 'path';
+import logger from '@/libs/logger';
 
 const jobSchemaParameter = z.object({
 	'@name': z.string().trim(),
-	'@type': z.enum(['string', 'number', 'date']),
+	'@type': z.enum(['string', 'number', 'date', 'boolean', 'enum']),
 	'@required': z.boolean(),
 	'@description': z.ostring(),
 	'enum-values': z.optional(
@@ -15,7 +16,7 @@ const jobSchemaParameter = z.object({
 		})
 	),
 	'default-value': z.optional(
-		z.union([z.number(), z.string().trim(), z.date()])
+		z.union([z.number(), z.string().trim(), z.date(), z.boolean()])
 	),
 });
 
@@ -28,6 +29,7 @@ const jobSchemaObject = z.object({
 	name: z.string().trim(),
 	module: z.string().trim(),
 	description: z.ostring(),
+	validator: z.string(),
 	parameters: z.object({
 		parameter: z.array(z.optional(jobSchemaParameter)),
 	}),
@@ -36,7 +38,7 @@ const jobSchemaObject = z.object({
 	}),
 });
 
-const jobSchema = z.array(z.optional(jobSchemaObject));
+const jobSchema = z.array(jobSchemaObject);
 
 async function jobSchemaValidator() {
 	try {
@@ -68,6 +70,9 @@ async function jobSchemaValidator() {
 							break;
 						case 'number':
 							isValid = typeof p?.['default-value'] === 'number';
+							break;
+						case 'boolean':
+							isValid = typeof p?.['default-value'] === 'boolean';
 							break;
 						default:
 							isValid = typeof p?.['default-value'] === 'string';
@@ -102,7 +107,8 @@ async function jobSchemaValidator() {
 
 		return jobs;
 	} catch (error) {
-		throw SyntaxError((error as Error).message);
+		logger.error(error);
+		throw error;
 	}
 }
 

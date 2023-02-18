@@ -43,7 +43,7 @@ COPY start.sh ./
 
 RUN chmod +x ./start.sh && chown node:node /usr/app
 
-EXPOSE 5001 ${PORT}
+EXPOSE ${PORT}
 
 USER node
 

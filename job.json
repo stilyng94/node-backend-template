@@ -1,7 +1,7 @@
 [
   {
 		"name": "custom-template-demo",
-		"module": "jobsteps/demo",
+		"module": "demo",
 		"description": "",
 		"parameters": {
 			"parameter": [

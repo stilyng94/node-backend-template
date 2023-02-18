@@ -22,9 +22,15 @@ export default async (job: SandboxedJob) => {
 	let modulePath;
 
 	if (__filename.split('.').at(-1) !== 'js') {
-		modulePath = path.resolve(process.cwd(), `./src/${job.data.module}.ts`);
+		modulePath = path.resolve(
+			process.cwd(),
+			`./src/jobsteps/${job.data.module}.ts`
+		);
 	} else {
-		modulePath = path.resolve(process.cwd(), `./dist/${job.data.module}.js`);
+		modulePath = path.resolve(
+			process.cwd(),
+			`./dist/jobsteps/${job.data.module}.js`
+		);
 	}
 
 	let jobFunc;

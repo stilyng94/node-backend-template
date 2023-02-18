@@ -67,9 +67,9 @@ async function parseAddJobData(jobData: object, module: string) {
 	let modulePath;
 
 	if (__filename.split('.').at(-1) !== 'js') {
-		modulePath = path.resolve(process.cwd(), `./src/${module}.ts`);
+		modulePath = path.resolve(process.cwd(), `./src/jobsteps/${module}.ts`);
 	} else {
-		modulePath = path.resolve(process.cwd(), `./dist/${module}.js`);
+		modulePath = path.resolve(process.cwd(), `./dist/jobsteps/${module}.js`);
 	}
 
 	let validatorFunc;

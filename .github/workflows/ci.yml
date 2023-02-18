@@ -3,19 +3,14 @@ name: CI
 on:
   push:
     branches: [main, staging]
-  pull_request:
-    branches: [main, staging]
-
-  workflow_dispatch:
 
 jobs:
   ci-workflow:
-    runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04]
-
+    runs-on: ${{matrix.os}}
     steps:
       - uses: actions/checkout@v3
       - name: Pipeline

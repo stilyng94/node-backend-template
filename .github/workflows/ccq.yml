@@ -9,7 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         node-version: ['16.16.0','18.12.1']
-        os: [ubuntu-22.04]
+        os: [latest]
         pnpm-version: ['7.17.1']
     runs-on: ${{matrix.os}}
     name: Node ${{matrix.node-version}}

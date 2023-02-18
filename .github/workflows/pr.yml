@@ -7,8 +7,8 @@ jobs:
   pr-workflow:
     strategy:
       fail-fast: false
-    matrix:
-      os: [ubuntu-22.04]
+      matrix:
+        os: [latest]
     runs-on: ${{matrix.os}}
     name: Node ${{matrix.node-version}}
     steps:

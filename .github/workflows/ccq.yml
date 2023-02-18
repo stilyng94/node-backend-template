@@ -7,10 +7,10 @@ jobs:
   code-quality-workflow:
     strategy:
       fail-fast: false
-    matrix:
-      node-version: ['16.16.0','18.12.1']
-      os: [ubuntu-22.04]
-      pnpm-version: ['7.17.1']
+      matrix:
+        node-version: ['16.16.0','18.12.1']
+        os: [ubuntu-22.04]
+        pnpm-version: ['7.17.1']
     runs-on: ${{matrix.os}}
     name: Node ${{matrix.node-version}}
     steps:

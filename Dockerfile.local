@@ -16,9 +16,8 @@ RUN npm config set unsafe-perm true && npm install -g pnpm
 COPY package.json ./
 COPY pnpm-lock.yaml ./
 COPY tsconfig.json ./
-COPY ./prisma ./prisma
 
-RUN pnpm install --frozen-lockfile --ignore-scripts && pnpm generate
+RUN npm pkg delete scripts.prepare && pnpm install --frozen-lockfile && pnpm generate
 
 COPY . .
 

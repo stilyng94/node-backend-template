@@ -1,23 +1,17 @@
-name: CI
-
+name: Check code quality
 on:
   push:
-    branches-ignore: [main, staging]
-  pull_request:
-    branches-ignore: [main, staging]
-
-  workflow_dispatch:
+    branches-ignore: [main, staging, develop]
 
 jobs:
-  ci-workflow:
-    runs-on: ${{matrix.os}}
+  code-quality-workflow:
     strategy:
       fail-fast: false
-      matrix:
-        node-version: ['16.16.0','18.12.1']
-        os: [ubuntu-22.04]
-        pnpm-version: ['7.17.1']
-
+    matrix:
+      node-version: ['16.16.0','18.12.1']
+      os: [ubuntu-22.04]
+      pnpm-version: ['7.17.1']
+    runs-on: ${{matrix.os}}
     name: Node ${{matrix.node-version}}
     steps:
       - uses: actions/checkout@v3
@@ -30,4 +24,7 @@ jobs:
           run_install: |
             - args: ['--frozen-lockfile']
 
-      - run: pnpm build
+      - name: Linting
+        run:  pnpm lint
+      - name: Building
+        run:  pnpm build

@@ -20,9 +20,7 @@ COPY package.json ./
 COPY pnpm-lock.yaml ./
 COPY tsconfig.json ./
 
-COPY ./prisma ./prisma
-
-RUN pnpm install --frozen-lockfile --ignore-scripts && pnpm generate
+RUN npm pkg delete scripts.prepare && pnpm install --frozen-lockfile && pnpm generate
 
 COPY . .
 
@@ -37,7 +35,7 @@ COPY --from=builder /usr/app/package.json ./
 COPY --from=builder /usr/app/pnpm-lock.yaml ./
 COPY ./prisma ./prisma
 
-RUN pnpm install --prod --frozen-lockfile --ignore-scripts && pnpm store prune && pnpm generate
+RUN npm pkg delete scripts.prepare && pnpm install --prod --frozen-lockfile && pnpm store prune && pnpm generate
 
 COPY --from=builder /usr/app/dist ./dist
 COPY ./views ./views
@@ -45,7 +43,7 @@ COPY start.sh ./
 
 RUN chmod +x ./start.sh && chown node:node /usr/app
 
-EXPOSE 5001
+EXPOSE 5001 ${PORT}
 
 USER node
 

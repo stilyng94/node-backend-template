@@ -1,21 +1,15 @@
 FROM node:lts-bullseye-slim@sha256:d93fb5c25db163dc795d40eabf66251a2daf6a2c6a2d21cc29930e754aef4c2c
 
-RUN apt-get update -y && apt-get install --no-install-recommends -y openssl \
-&& apt-get install --no-install-recommends -y curl && apt-get install --no-install-recommends -y dumb-init \
+RUN apt-get update -y && apt-get install --no-install-recommends --no-install-suggests -y openssl \
+&& apt-get install --no-install-recommends --no-install-suggests -y curl && apt-get install --no-install-recommends --no-install-suggests -y dumb-init \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/*
-
-
-ENV LANG C.UTF-8
-ENV LC_ALL C.UTF-8
 
 WORKDIR /usr/app
 
 RUN npm config set unsafe-perm true && npm install -g pnpm
 
-COPY package.json ./
-COPY pnpm-lock.yaml ./
-COPY tsconfig.json ./
+COPY package.json pnpm-lock.yaml tsconfig.json ./
 
 RUN npm pkg delete scripts.prepare && pnpm install --frozen-lockfile && pnpm generate
 

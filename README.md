@@ -2,9 +2,7 @@
 
 ## Jobs
 
-
 - Set env `CRON_JOB=true` if you add cronjob so it validates and parse data
-
 
 - Sample
   `	[
@@ -62,7 +60,7 @@
 ]
 `
 
-### Add configured jobs to jobs.json, followed by its implementation in jobsteps/__filename.ts. __filename is must be the same as module in job.json file.
+### Add configured jobs to jobs.json, followed by its implementation in jobsteps/**filename.ts. **filename is must be the same as module in job.json file.
 
 ## SESSION OR JWT
 

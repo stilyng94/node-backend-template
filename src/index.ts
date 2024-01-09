@@ -7,7 +7,8 @@ import logger from '@/libs/logger';
 import config from '@/config';
 import server from '@/server';
 import jobHelpers from './helpers/job-helpers';
-import meilisearchCLient from './libs/meilisearch-client';
+// import meilisearchCLient from './libs/meilisearch-client';
+import opensearchClient from './libs/opensearch-client';
 
 const port = config.PORT;
 
@@ -17,17 +18,22 @@ async function onSignal() {
 	return Promise.all([
 		redisClient.quit(),
 		dbClient.$disconnect(),
+		opensearchClient.close(),
 		queue.close(),
 	]);
 }
 
 async function healthCheck() {
-	return Promise.all([redisClient.ping(), dbClient.$executeRaw`SELECT 1`]);
+	return Promise.all([
+		redisClient.ping(),
+		dbClient.$executeRaw`SELECT 1`,
+		opensearchClient.ping(),
+		// meilisearchCLient.isHealthy(),
+	]);
 }
 
 const main = async () => {
 	try {
-		await meilisearchCLient.health();
 		if (config.CRON_JOB) await jobHelpers.validateAndIndexJobs();
 		await redisClient.connect();
 		await dbClient.$connect();
@@ -52,6 +58,7 @@ process.on('uncaughtException', async (error) => {
 	await redisClient.quit();
 	await dbClient.$disconnect();
 	await queue.close();
+	await opensearchClient.close();
 	process.exitCode = 1;
 });
 process.on('unhandledRejection', async (error) => {

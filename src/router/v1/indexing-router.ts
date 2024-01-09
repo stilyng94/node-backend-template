@@ -26,4 +26,29 @@ indexingRouter.get(
 	indexingController.searchDocument
 );
 
+indexingRouter.get(
+	'/opensearch-indexes',
+	// rateLimiterMiddleware.userNameIpLimiterMiddleware,
+	// jwtMiddleware.accessTokenMiddleware,
+	indexingController.indexDocumentsWithOpensearch
+);
+
+indexingRouter.get(
+	'/opensearch-getIndices',
+	// rateLimiterMiddleware.userNameIpLimiterMiddleware,
+	// jwtMiddleware.accessTokenMiddleware,
+	indexingController.getIndicesWithOpensearch
+);
+
+indexingRouter.get(
+	'/opensearch-index',
+	// jwtMiddleware.accessTokenMiddleware,
+	indexingController.indexDocumentWithOpensearch
+);
+indexingRouter.post(
+	'/opensearch-create',
+	// jwtMiddleware.accessTokenMiddleware,
+	indexingController.createIndexWithOpensearch
+);
+
 export default indexingRouter;

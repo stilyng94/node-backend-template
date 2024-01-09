@@ -47,4 +47,5 @@ export default parseEnv(process.env, {
 	MEILI_MASTER_KEY: z.string(),
 	MEILI_API_KEY: z.string(),
 	CRON_JOB: z.boolean().default(false),
+	OPENSEARCH_URI: url,
 });

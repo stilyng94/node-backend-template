@@ -47,7 +47,7 @@ app.use(
 					secure: constants.isProduction,
 					httpOnly: true,
 					signed: false,
-					sameSite: 'lax', // csrf
+					sameSite: 'strict', // csrf
 					maxAge: 1000 * 60 * 60 * 24 * 30, // 30days
 				},
 		  })

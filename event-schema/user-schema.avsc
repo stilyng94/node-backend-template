@@ -1,7 +1,7 @@
 {
 	"name": "user",
 	"type": "record",
-  "namespace":"org.user.com",
+	"namespace": "org.user.com",
 	"fields": [
 		{
 			"name": "gender",

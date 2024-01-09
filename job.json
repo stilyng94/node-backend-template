@@ -1,5 +1,5 @@
 [
-  {
+	{
 		"name": "custom-template-demo",
 		"module": "demo",
 		"description": "",
@@ -17,12 +17,12 @@
 					"@required": true,
 					"description": "username"
 				},
-        {
+				{
 					"@name": "Consent",
 					"@type": "boolean",
 					"@required": false,
 					"description": "consent",
-          "default-value": false
+					"default-value": false
 				},
 				{
 					"@name": "Gender",
